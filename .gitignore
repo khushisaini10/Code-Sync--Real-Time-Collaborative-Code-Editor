@@ -23,3 +23,15 @@
 hs_err_pid*
 replay_pid*
 
+# Maven build output
+target/
+
+# Eclipse
+.settings/
+.classpath
+.project
+.factorypath
+
+# IntelliJ
+.idea/
+*.iml
