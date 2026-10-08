@@ -35,5 +35,23 @@ service cloud.firestore {
 ```
 Click **Publish**. The server is not affected, because the Admin SDK bypasses these rules.
 
+## Rooms (Phase 2)
+1. Run the app, log in, and on the dashboard create a room. You land in the editor with a 6-letter code (e.g. `K7M2QX`).
+2. **Copy link** and send it to a teammate. Opening `/editor.html?room=K7M2QX` sends them to login first (if needed), adds them to the room, and syncs the code live.
+3. Room code is saved to Firestore every ~10 seconds and when the server stops.
+
+### Who can open your link?
+| Where you run it | Link looks like | Who can open it |
+|---|---|---|
+| Your PC | `http://localhost:8081/...` | Only you |
+| Same Wi-Fi | `http://<your-PC-IP>:8081/...` | People on that network (allow Java through Windows Firewall) |
+| Temporary tunnel (ngrok / Cloudflare) | `https://something.trycloudflare.com/...` | Anyone, while your PC and tunnel are running. Add the tunnel domain to Firebase > Authentication > Settings > Authorized domains |
+| Real deployment (Phase 5) | `https://your-app.example.com/...` | Anyone, always on |
+
+Links use whatever address the page is opened from, so nothing needs changing in code.
+
 ## Deploying later
-Instead of a key file, set the environment variable `FIREBASE_CREDENTIALS_JSON` to the full contents of the key.
+Set these environment variables on the host:
+- `FIREBASE_CREDENTIALS_JSON` = the full contents of the service-account key (never commit it)
+- `PORT` = provided by most hosts automatically (the app reads it)
+Then add your site's domain in Firebase > Authentication > Settings > Authorized domains.

@@ -16,6 +16,17 @@ export function waitForUser() {
   });
 }
 
+/** Login page address that remembers where to come back to (used for shared room links). */
+export function loginUrl() {
+  const here = location.pathname.replace(/^\//, "") + location.search;
+  return "index.html?next=" + encodeURIComponent(here);
+}
+
+/** The link to share for a room. Uses whatever address the site is served from (localhost, LAN, or your real domain). */
+export function roomLink(code) {
+  return location.origin + "/editor.html?room=" + encodeURIComponent(code);
+}
+
 /** Calls our Java server with the login token attached. */
 export async function api(path, options = {}) {
   const user = auth.currentUser;
@@ -51,7 +62,7 @@ export async function api(path, options = {}) {
  * Not logged in -> sends the visitor to the login page and returns null.
  * Logged in     -> returns { user, me } where me = { uid, email, name, role }.
  */
-export async function requireUser(loginPage = "index.html") {
+export async function requireUser(loginPage = loginUrl()) {
   const user = await waitForUser();
   if (!user) {
     location.replace(loginPage);

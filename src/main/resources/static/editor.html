@@ -38,12 +38,12 @@
   <div id="app" class="hidden">
     <header>
       <div class="brand"><img src="logo.svg" alt=""><span>Code-<b>Sync</b></span></div>
+      <strong id="room-title" class="room-title"></strong>
+      <span id="room-code" class="chip-room" title="Room code"></span>
+      <span id="room-lang" class="chip-lang"></span>
       <div class="spacer"></div>
       <div id="presence"></div>
-      <input id="name" placeholder="Your name" maxlength="20" autocomplete="off">
-      <input id="room" placeholder="Room" maxlength="32" autocomplete="off">
-      <button id="join">Join</button>
-      <button id="share" class="ghost">Copy link</button>
+      <button id="share" class="ghost" type="button">Copy link</button>
       <button id="back" class="ghost" type="button" onclick="location.href='dashboard.html'">Dashboard</button>
     </header>
 
@@ -62,7 +62,6 @@
     </footer>
   </div>
 
-  <script src="app.js"></script>
-  <script type="module" src="editor-guard.js"></script>
+  <script type="module" src="app.js"></script>
 </body>
 </html>

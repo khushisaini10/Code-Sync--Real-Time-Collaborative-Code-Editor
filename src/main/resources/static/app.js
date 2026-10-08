@@ -1,10 +1,11 @@
-(() => {
-  'use strict';
+import { auth, api, requireUser, roomLink } from './session.js';
+
+{
 
   const $ = (id) => document.getElementById(id);
   const ta = $('ta'), hl = $('hl'), gutter = $('gutter');
   const posEl = $('pos'), countEl = $('count'), connEl = $('conn');
-  const roomInput = $('room'), nameInput = $('name'), presenceEl = $('presence');
+  const presenceEl = $('presence');
   const splash = $('splash'), app = $('app');
 
   // =====================================================================
@@ -48,13 +49,23 @@
   // =====================================================================
   //  Syntax highlighting (Java)
   // =====================================================================
-  const KEYWORDS = 'abstract|assert|boolean|break|byte|case|catch|char|class|const|continue|default|do|double|' +
+  // <highlight>
+  const JAVA_KEYWORDS = 'abstract|assert|boolean|break|byte|case|catch|char|class|const|continue|default|do|double|' +
     'else|enum|extends|final|finally|float|for|if|implements|import|instanceof|int|interface|long|new|package|' +
     'private|protected|public|return|short|static|super|switch|this|throw|throws|try|void|volatile|while|var|' +
     'record|true|false|null';
-  const TOKEN = new RegExp(
-    /(\/\/.*|\/\*[\s\S]*?\*\/)|("(?:\\.|[^"\\\n])*")/.source +
-    '|\\b(' + KEYWORDS + ')\\b|\\b(\\d+(?:\\.\\d+)?)\\b', 'g');
+  const PYTHON_KEYWORDS = 'and|as|assert|async|await|break|class|continue|def|del|elif|else|except|finally|for|' +
+    'from|global|if|import|in|is|lambda|nonlocal|not|or|pass|raise|return|try|while|with|yield|True|False|None';
+
+  function buildToken(language) {
+    const py = language === 'python';
+    const comment = py ? '(#.*)' : '(\\/\\/.*|\\/\\*[\\s\\S]*?\\*\\/)';
+    const string = '("(?:\\\\.|[^"\\\\\\n])*"' + (py ? "|'(?:\\\\.|[^'\\\\\\n])*'" : '') + ')';
+    return new RegExp(comment + '|' + string + '|\\b(' + (py ? PYTHON_KEYWORDS : JAVA_KEYWORDS) +
+      ')\\b|\\b(\\d+(?:\\.\\d+)?)\\b', 'g');
+  }
+  // </highlight>
+  let TOKEN = buildToken('java');
 
   const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
@@ -127,7 +138,11 @@
   let serverVersion = 0;      // how many edits serverText includes
   let outstanding = false;    // one edit at a time is in flight
 
+  let roomCode = '';
+  let stopped = false;        // true after a fatal error (bad room, not allowed): do not reconnect
+
   function connect() {
+    if (stopped) return;
     setConn('connecting', 'connecting');
     const scheme = location.protocol === 'https:' ? 'wss://' : 'ws://';
     ws = new WebSocket(scheme + location.host + '/ws/editor');
@@ -137,17 +152,27 @@
       ready = false;
       outstanding = false;
       ta.readOnly = true;
+      if (stopped) return;
       setConn('offline', 'offline - retrying');
       setTimeout(connect, 2000);
     };
   }
 
-  function join() {
+  async function join() {
     ready = false;
     ta.readOnly = true;
-    if (ws && ws.readyState === WebSocket.OPEN) {
-      ws.send(JSON.stringify({ type: 'join', room: roomInput.value.trim(), name: nameInput.value.trim() }));
+    if (!ws || ws.readyState !== WebSocket.OPEN || !auth.currentUser) return;
+    const token = await auth.currentUser.getIdToken(); // fresh login token; the server checks it
+    if (ws.readyState === WebSocket.OPEN) {
+      ws.send(JSON.stringify({ type: 'join', room: roomCode, token }));
     }
+  }
+
+  function fatal(message) {
+    stopped = true;
+    setConn('offline', message);
+    showApp();
+    if (ws) ws.close();
   }
 
   function handle(msg) {
@@ -159,9 +184,8 @@
         outstanding = false;
         ready = true;
         ta.readOnly = false;
+        TOKEN = buildToken(msg.language);
         ta.value = msg.text;
-        roomInput.value = msg.room;
-        history.replaceState(null, '', '?room=' + encodeURIComponent(msg.room));
         render();
         setConn('live', 'live - room ' + msg.room);
         break;
@@ -170,6 +194,9 @@
         break;
       case 'presence':
         renderPresence(msg.users);
+        break;
+      case 'error':
+        fatal(msg.message);
         break;
       default:
         break;
@@ -227,17 +254,11 @@
     }
   });
 
-  $('join').addEventListener('click', join);
-  roomInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') join(); });
   $('share').addEventListener('click', () => {
-    const link = location.origin + '/editor.html?room=' + encodeURIComponent(roomInput.value.trim() || 'main');
+    const link = roomLink(roomCode);
     const done = () => { $('share').textContent = 'Copied!'; setTimeout(() => { $('share').textContent = 'Copy link'; }, 1500); };
     if (navigator.clipboard) navigator.clipboard.writeText(link).then(done, () => window.prompt('Copy this link:', link));
     else window.prompt('Copy this link:', link);
-  });
-
-  nameInput.addEventListener('change', () => {
-    try { localStorage.setItem('codesync-name', nameInput.value.trim()); } catch (_) { /* private mode */ }
   });
 
   // =====================================================================
@@ -246,18 +267,20 @@
   const BRAND = 'Code-Sync';
   const SPLIT = 5;                            // "Code-" white, "Sync" cyan
   const STEPS = ['Warming up the engine...', 'Loading syntax rules...', 'Connecting to sync server...', 'Ready.'];
-  const DURATION = 3200;
+  let DURATION = 3200;
   const clamp = (v) => Math.max(0, Math.min(1, v));
   const t0 = performance.now();
 
+  function showApp() {
+    if (!splash.isConnected) return;
+    app.classList.remove('hidden');
+    splash.classList.add('out');
+    setTimeout(() => splash.remove(), 700);
+  }
+
   function finishSplash() {
-    const wait = ready ? 0 : 1200;            // give the socket a moment if it is slow
-    setTimeout(() => {
-      app.classList.remove('hidden');
-      splash.classList.add('out');
-      setTimeout(() => splash.remove(), 700);
-      ta.focus();
-    }, wait);
+    const wait = ready || stopped ? 0 : 1200;   // give the socket a moment if it is slow
+    setTimeout(() => { showApp(); ta.focus(); }, wait);
   }
 
   function tick(now) {
@@ -273,12 +296,42 @@
   // =====================================================================
   //  Start
   // =====================================================================
-  const params = new URLSearchParams(location.search);
-  roomInput.value = (params.get('room') || 'main').replace(/[^A-Za-z0-9_-]/g, '').slice(0, 32) || 'main';
-  try { nameInput.value = localStorage.getItem('codesync-name') || ''; } catch (_) { /* ignore */ }
-  if (!nameInput.value) nameInput.value = 'Guest-' + (100 + Math.floor(Math.random() * 900));
+  async function start() {
+    // The full animation plays the first time; later opens in this tab are quick.
+    try {
+      if (sessionStorage.getItem('codesync-splash')) DURATION = 600;
+      sessionStorage.setItem('codesync-splash', '1');
+    } catch (_) { /* private mode */ }
+    requestAnimationFrame(tick);
 
-  render();
-  connect();
-  requestAnimationFrame(tick);
-})();
+    const session = await requireUser();       // not logged in -> login page, then back here
+    if (!session) return;
+
+    const code = (new URLSearchParams(location.search).get('room') || '').trim().toUpperCase();
+    if (!/^[A-Z0-9]{6}$/.test(code)) {
+      fatal('Missing or invalid room code');
+      return;
+    }
+    roomCode = code;
+
+    try {
+      const room = await api('/api/rooms/' + encodeURIComponent(code) + '/join', { method: 'POST' }); // opening the link joins the room
+      $('room-title').textContent = room.name;
+      $('room-code').textContent = room.code;
+      $('room-lang').textContent = room.language;
+      document.title = room.name + ' - Code-Sync';
+      TOKEN = buildToken(room.language);
+    } catch (error) {
+      fatal(error.status === 404 ? 'Room not found' : error.message);
+      return;
+    }
+
+    render();
+    connect();
+  }
+
+  start().catch((error) => {
+    console.error(error);
+    fatal('Could not start: ' + error.message);
+  });
+}

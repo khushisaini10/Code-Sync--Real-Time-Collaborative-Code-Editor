@@ -9,9 +9,17 @@ import {
 const $ = (id) => document.getElementById(id);
 let mode = "login"; // "login" or "signup"
 
+/** Where to go after login: the page the visitor wanted (e.g. a shared room link), else the dashboard. */
+function goNext() {
+  const next = new URLSearchParams(location.search).get("next") || "";
+  // only same-site relative pages like "editor.html?room=ABC123" are allowed (blocks open redirects)
+  const safe = /^[A-Za-z0-9_-]+\.html(\?[A-Za-z0-9_=&%.-]*)?$/.test(next);
+  location.replace(safe ? next : "dashboard.html");
+}
+
 // Already logged in? Skip this page.
 waitForUser().then((user) => {
-  if (user) location.replace("dashboard.html");
+  if (user) goNext();
 });
 
 function setMode(next) {
@@ -93,7 +101,7 @@ $("form").addEventListener("submit", async (event) => {
 
   try {
     await api("/api/me"); // our Java server verifies the token and creates the profile
-    location.replace("dashboard.html");
+    goNext();
   } catch (error) {
     setBusy(false);
     showMessage("Logged in, but the server said: " + error.message);

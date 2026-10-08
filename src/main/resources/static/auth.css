@@ -107,3 +107,17 @@ select { padding: 6px 8px; background: var(--panel); color: var(--fg); border: 1
 .table-wrap { overflow-x: auto; }
 .toast { min-height: 22px; margin: 12px 0 0; font-size: 13px; color: var(--ok); }
 .toast.err { color: var(--danger); }
+
+/* ---------- rooms ---------- */
+.tile label { display: block; margin: 0 0 4px; color: var(--dim); font-size: 13px; }
+.tile input, .tile select { display: block; width: 100%; margin: 0 0 12px; padding: 10px 12px; background: var(--panel); color: var(--fg); border: 1px solid var(--line); border-radius: 10px; font: inherit; outline: none; }
+.tile input:focus, .tile select:focus { border-color: var(--cyan); }
+.tile button.btn, .tile a.btn { display: inline-block; }
+#join-code { text-transform: uppercase; letter-spacing: 3px; font-family: ui-monospace, Consolas, monospace; }
+.section-title { margin: 32px 0 4px; font-size: 18px; }
+.room-list { display: flex; flex-direction: column; gap: 10px; }
+.room-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 16px; background: var(--card); border: 1px solid var(--line); border-radius: 12px; }
+.roominfo { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.roominfo span { color: var(--dim); font-size: 13px; }
+.roominfo .chip-code { align-self: flex-start; padding: 1px 8px; border: 1px solid var(--line); border-radius: 6px; color: var(--cyan); font-family: ui-monospace, Consolas, monospace; letter-spacing: 2px; }
+.room-actions { display: flex; flex-wrap: wrap; gap: 8px; }

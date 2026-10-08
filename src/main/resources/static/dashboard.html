@@ -25,17 +25,26 @@
       <p class="sub">What would you like to do?</p>
 
       <div class="grid">
-        <div class="tile">
-          <h3>Code editor</h3>
-          <p>Open the live editor. Open it in two tabs to see edits sync.</p>
-          <a class="btn primary-btn" href="editor.html">Open editor</a>
-        </div>
+        <form id="create-form" class="tile">
+          <h3>Create a room</h3>
+          <p>Start a new room, then share its link with your team.</p>
+          <label for="room-name">Room name</label>
+          <input id="room-name" maxlength="40" placeholder="e.g. PBL group work" autocomplete="off" required>
+          <label for="room-lang">Language</label>
+          <select id="room-lang">
+            <option value="java">Java</option>
+            <option value="python">Python</option>
+          </select>
+          <button class="btn primary-btn" type="submit">Create room</button>
+        </form>
 
-        <div class="tile soon">
-          <h3>Rooms</h3>
-          <p>Create a room and invite people to code together. Coming next.</p>
-          <button class="btn" type="button" disabled>Coming soon</button>
-        </div>
+        <form id="join-form" class="tile">
+          <h3>Join a room</h3>
+          <p>Got a code from a teammate? Enter it here (or just open their link).</p>
+          <label for="join-code">Room code</label>
+          <input id="join-code" maxlength="6" placeholder="K7M2QX" autocomplete="off" required>
+          <button class="btn primary-btn" type="submit">Join room</button>
+        </form>
 
         <div id="admin-card" class="tile hidden">
           <h3>Admin panel</h3>
@@ -43,6 +52,10 @@
           <a class="btn primary-btn" href="admin.html">Manage users</a>
         </div>
       </div>
+
+      <h3 class="section-title">My rooms</h3>
+      <p id="room-msg" class="toast"></p>
+      <div id="room-list" class="room-list"></div>
     </div>
   </main>
 

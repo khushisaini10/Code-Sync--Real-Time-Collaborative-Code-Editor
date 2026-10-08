@@ -168,3 +168,7 @@ footer {
 #conn.live { color: var(--cyan); animation: blink 1.4s infinite; }
 #conn.connecting { color: #FFCB6B; }
 #conn.offline { color: #FF5370; }
+
+.room-title { font-size: 15px; }
+.chip-room, .chip-lang { padding: 2px 8px; border: 1px solid var(--line); border-radius: 6px; color: var(--cyan); font: 12px var(--mono); letter-spacing: 1px; }
+.chip-lang { color: var(--dim); letter-spacing: 0; text-transform: capitalize; }

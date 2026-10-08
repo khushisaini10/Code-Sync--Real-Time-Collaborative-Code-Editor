@@ -1,17 +1,25 @@
 package com.codesync.websocket;
 
+import com.codesync.dto.AppUser;
 import com.codesync.dto.Op;
+import com.codesync.dto.Room;
 import com.codesync.service.DocumentService;
+import com.codesync.service.RoomCodes;
+import com.codesync.service.RoomService;
 import com.codesync.service.SharedDocument;
+import com.codesync.service.UserService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseAuthException;
+import com.google.firebase.auth.FirebaseToken;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,10 +31,15 @@ import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 /**
  * Browser protocol (JSON over /ws/editor)
- *   client -> server: {type:"join", room, name}   {type:"edit", version, from, to, text}
- *   server -> client: {type:"init", clientId, room, text, version, color}
+ *   client -> server: {type:"join", room:"K7M2QX", token:"<Firebase ID token>"}
+ *                     {type:"edit", version, from, to, text}
+ *   server -> client: {type:"init", clientId, room, language, text, version, color}
  *                     {type:"op", clientId, version, from, to, text}   (sent to everyone, author included = ack)
  *                     {type:"presence", users:[{id,name,color}]}
+ *                     {type:"error", message}
+ *
+ * <p>A client may only join a room if its login token is valid AND it is a member of that room.
+ * The display name always comes from the user's profile, never from the browser.
  */
 @Component
 public class EditorWebSocketHandler extends TextWebSocketHandler {
@@ -34,6 +47,7 @@ public class EditorWebSocketHandler extends TextWebSocketHandler {
     private static final Logger log = LoggerFactory.getLogger(EditorWebSocketHandler.class);
     private static final String[] COLORS =
             {"#22D3EE", "#8B5CF6", "#F78C6C", "#A5E075", "#FFCB6B", "#FF5370"};
+    private static final int MAX_EDIT_CHARS = 200_000;
 
     private static final class Client {
         final WebSocketSession session;
@@ -50,12 +64,19 @@ public class EditorWebSocketHandler extends TextWebSocketHandler {
     }
 
     private final DocumentService documents;
+    private final FirebaseAuth firebaseAuth;
+    private final UserService users;
+    private final RoomService rooms;
     private final ObjectMapper mapper = new ObjectMapper();
     private final Map<String, Client> clients = new ConcurrentHashMap<>();
     private final AtomicInteger connections = new AtomicInteger();
 
-    public EditorWebSocketHandler(DocumentService documents) {
+    public EditorWebSocketHandler(DocumentService documents, FirebaseAuth firebaseAuth,
+                                  UserService users, RoomService rooms) {
         this.documents = documents;
+        this.firebaseAuth = firebaseAuth;
+        this.users = users;
+        this.rooms = rooms;
     }
 
     @Override
@@ -70,11 +91,16 @@ public class EditorWebSocketHandler extends TextWebSocketHandler {
         if (c == null) {
             return;
         }
-        JsonNode msg = mapper.readTree(message.getPayload());
-        switch (msg.path("type").asText()) {
-            case "join" -> join(c, msg);
-            case "edit" -> edit(c, msg);
-            default -> log.debug("ignoring message type {}", msg.path("type").asText());
+        try {
+            JsonNode msg = mapper.readTree(message.getPayload());
+            switch (msg.path("type").asText()) {
+                case "join" -> join(c, msg);
+                case "edit" -> edit(c, msg);
+                default -> log.debug("ignoring message type {}", msg.path("type").asText());
+            }
+        } catch (RuntimeException e) {
+            log.warn("Error handling message from {}: {}", c.id, e.toString());
+            sendError(c, "Something went wrong on the server. Please reload the page.");
         }
     }
 
@@ -82,26 +108,41 @@ public class EditorWebSocketHandler extends TextWebSocketHandler {
         String oldRoom = c.room;
         c.room = null; // receive nothing from any room until the snapshot is sent
 
-        String room = sanitizeRoom(msg.path("room").asText("main"));
-        String name = msg.path("name").asText("").trim();
-        if (name.isEmpty()) {
-            name = "Guest-" + (100 + ThreadLocalRandom.current().nextInt(900));
+        FirebaseToken token;
+        try {
+            token = firebaseAuth.verifyIdToken(msg.path("token").asText(""));
+        } catch (FirebaseAuthException | IllegalArgumentException e) {
+            sendError(c, "Please log in again.");
+            return;
         }
-        c.name = name.length() > 20 ? name.substring(0, 20) : name;
+        AppUser user = users.getOrCreate(token);
 
-        SharedDocument doc = documents.room(room);
+        String code = RoomCodes.normalize(msg.path("room").asText("")).orElse("");
+        Optional<Room> found = code.isEmpty() ? Optional.empty() : rooms.find(code);
+        if (found.isEmpty()) {
+            sendError(c, "Room not found.");
+            return;
+        }
+        Room room = found.get();
+        if (!room.hasMember(user.uid())) {
+            sendError(c, "Open the room link first to join this room.");
+            return;
+        }
+        c.name = user.name().isBlank() ? "Guest" : user.name();
+
+        SharedDocument doc = documents.room(code, room.language());
         synchronized (doc) {
             // snapshot and joining the room happen under the document lock, so no edit can slip in between
             Map<String, Object> init = Map.of(
-                    "type", "init", "clientId", c.id, "room", room,
+                    "type", "init", "clientId", c.id, "room", code, "language", room.language(),
                     "text", doc.text(), "version", doc.version(), "color", c.color);
             sendRaw(c, toJson(init));
-            c.room = room;
+            c.room = code;
         }
-        if (oldRoom != null && !oldRoom.equals(room)) {
+        if (oldRoom != null && !oldRoom.equals(code)) {
             broadcastPresence(oldRoom);
         }
-        broadcastPresence(room);
+        broadcastPresence(code);
     }
 
     private void edit(Client c, JsonNode msg) {
@@ -109,10 +150,16 @@ public class EditorWebSocketHandler extends TextWebSocketHandler {
         if (room == null) {
             return;
         }
-        SharedDocument doc = documents.room(room);
-        Op incoming = new Op(msg.path("from").asInt(), msg.path("to").asInt(), msg.path("text").asText(""));
+        String text = msg.path("text").asText("");
+        if (text.length() > MAX_EDIT_CHARS) {
+            sendError(c, "That paste is too large.");
+            return;
+        }
+        SharedDocument doc = documents.room(room, "");
+        Op incoming = new Op(msg.path("from").asInt(), msg.path("to").asInt(), text);
         synchronized (doc) { // apply + broadcast together so everyone sees edits in the same order
             Op applied = doc.apply(msg.path("version").asInt(), incoming);
+            documents.markDirty(room);
             Map<String, Object> out = Map.of(
                     "type", "op", "clientId", c.id, "version", doc.version(),
                     "from", applied.from(), "to", applied.to(), "text", applied.text());
@@ -136,13 +183,13 @@ public class EditorWebSocketHandler extends TextWebSocketHandler {
     // ---------- helpers ----------
 
     private void broadcastPresence(String room) {
-        List<Map<String, String>> users = new ArrayList<>();
+        List<Map<String, String>> present = new ArrayList<>();
         for (Client c : clients.values()) {
             if (room.equals(c.room)) {
-                users.add(Map.of("id", c.id, "name", c.name, "color", c.color));
+                present.add(Map.of("id", c.id, "name", c.name, "color", c.color));
             }
         }
-        broadcast(room, Map.of("type", "presence", "users", users));
+        broadcast(room, Map.of("type", "presence", "users", present));
     }
 
     private void broadcast(String room, Object payload) {
@@ -152,6 +199,10 @@ public class EditorWebSocketHandler extends TextWebSocketHandler {
                 sendRaw(c, json);
             }
         }
+    }
+
+    private void sendError(Client c, String message) {
+        sendRaw(c, toJson(Map.of("type", "error", "message", message)));
     }
 
     private void sendRaw(Client c, String json) {
@@ -172,13 +223,5 @@ public class EditorWebSocketHandler extends TextWebSocketHandler {
         } catch (JsonProcessingException e) {
             throw new IllegalStateException(e);
         }
-    }
-
-    private static String sanitizeRoom(String raw) {
-        String room = raw.replaceAll("[^A-Za-z0-9_-]", "");
-        if (room.length() > 32) {
-            room = room.substring(0, 32);
-        }
-        return room.isEmpty() ? "main" : room;
     }
 }
