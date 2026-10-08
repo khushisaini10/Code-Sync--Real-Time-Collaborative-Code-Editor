@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Code-Sync - Admin</title>
+  <link rel="icon" href="logo.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="auth.css">
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="brand"><img src="logo.svg" alt=""><span>Code-<b>Sync</b></span></div>
+    <div class="spacer"></div>
+    <a class="btn" href="dashboard.html">Dashboard</a>
+    <button id="logout" class="btn" type="button">Log out</button>
+  </header>
+
+  <main class="page">
+    <h2>Admin panel</h2>
+    <p class="sub">Everyone who has signed up. Change a role and click Save.</p>
+
+    <div id="error" class="notice hidden"></div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Name</th><th>Email</th><th>Role</th><th></th></tr>
+        </thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+    <p id="toast" class="toast" role="status"></p>
+  </main>
+
+  <script type="module" src="admin.js"></script>
+</body>
+</html>

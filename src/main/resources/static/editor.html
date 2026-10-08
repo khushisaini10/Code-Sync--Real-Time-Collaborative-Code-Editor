@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Code-Sync</title>
+  <link rel="icon" href="logo.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- ===== OPENING SCREEN ===== -->
+  <div id="splash">
+    <div class="logo-wrap">
+      <div class="glow"></div>
+      <svg class="logo" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg" aria-label="Code-Sync logo">
+        <defs>
+          <linearGradient id="gs" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#22D3EE"/>
+            <stop offset="1" stop-color="#8B5CF6"/>
+          </linearGradient>
+        </defs>
+        <rect width="120" height="120" rx="36" fill="url(#gs)"/>
+        <g fill="none" stroke="#fff" stroke-width="8.4" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M36 33.6 L16.8 60 L36 86.4"/>
+          <path d="M84 33.6 L103.2 60 L84 86.4"/>
+          <path class="pulse" pathLength="1" d="M43.2 60 H51.6 L57.6 38.4 L64.8 81.6 L70.8 60 H76.8"/>
+        </g>
+      </svg>
+    </div>
+    <h1 id="brand"><span id="brand-w"></span><span id="brand-y"></span></h1>
+    <p id="tagline">Write code. Stay in sync.</p>
+    <div class="bar"><i id="bar-fill"></i></div>
+    <small id="status">Warming up the engine...</small>
+  </div>
+
+  <!-- ===== EDITOR ===== -->
+  <div id="app" class="hidden">
+    <header>
+      <div class="brand"><img src="logo.svg" alt=""><span>Code-<b>Sync</b></span></div>
+      <div class="spacer"></div>
+      <div id="presence"></div>
+      <input id="name" placeholder="Your name" maxlength="20" autocomplete="off">
+      <input id="room" placeholder="Room" maxlength="32" autocomplete="off">
+      <button id="join">Join</button>
+      <button id="share" class="ghost">Copy link</button>
+      <button id="back" class="ghost" type="button" onclick="location.href='dashboard.html'">Dashboard</button>
+    </header>
+
+    <div class="workspace">
+      <div id="gutter">1</div>
+      <div class="code">
+        <pre id="hl" aria-hidden="true"></pre>
+        <textarea id="ta" spellcheck="false" wrap="off" autocomplete="off" autocapitalize="off" readonly></textarea>
+      </div>
+    </div>
+
+    <footer>
+      <span id="pos">Ln 1, Col 1</span>
+      <span id="count"></span>
+      <span id="conn" class="connecting">connecting</span>
+    </footer>
+  </div>
+
+  <script src="app.js"></script>
+  <script type="module" src="editor-guard.js"></script>
+</body>
+</html>

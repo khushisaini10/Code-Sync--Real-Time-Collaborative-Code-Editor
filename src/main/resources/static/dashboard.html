@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Code-Sync - Dashboard</title>
+  <link rel="icon" href="logo.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="auth.css">
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="brand"><img src="logo.svg" alt=""><span>Code-<b>Sync</b></span></div>
+    <div class="spacer"></div>
+    <span id="role" class="badge hidden"></span>
+    <span id="email" class="who"></span>
+    <button id="logout" class="btn" type="button">Log out</button>
+  </header>
+
+  <main class="page">
+    <div id="error" class="notice hidden"></div>
+
+    <div id="content" class="hidden">
+      <h2 id="hello">Welcome</h2>
+      <p class="sub">What would you like to do?</p>
+
+      <div class="grid">
+        <div class="tile">
+          <h3>Code editor</h3>
+          <p>Open the live editor. Open it in two tabs to see edits sync.</p>
+          <a class="btn primary-btn" href="editor.html">Open editor</a>
+        </div>
+
+        <div class="tile soon">
+          <h3>Rooms</h3>
+          <p>Create a room and invite people to code together. Coming next.</p>
+          <button class="btn" type="button" disabled>Coming soon</button>
+        </div>
+
+        <div id="admin-card" class="tile hidden">
+          <h3>Admin panel</h3>
+          <p>See all users and change who is an admin.</p>
+          <a class="btn primary-btn" href="admin.html">Manage users</a>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script type="module" src="dashboard.js"></script>
+</body>
+</html>

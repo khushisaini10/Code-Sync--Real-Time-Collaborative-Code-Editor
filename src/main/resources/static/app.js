@@ -230,7 +230,7 @@
   $('join').addEventListener('click', join);
   roomInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') join(); });
   $('share').addEventListener('click', () => {
-    const link = location.origin + '/?room=' + encodeURIComponent(roomInput.value.trim() || 'main');
+    const link = location.origin + '/editor.html?room=' + encodeURIComponent(roomInput.value.trim() || 'main');
     const done = () => { $('share').textContent = 'Copied!'; setTimeout(() => { $('share').textContent = 'Copy link'; }, 1500); };
     if (navigator.clipboard) navigator.clipboard.writeText(link).then(done, () => window.prompt('Copy this link:', link));
     else window.prompt('Copy this link:', link);
