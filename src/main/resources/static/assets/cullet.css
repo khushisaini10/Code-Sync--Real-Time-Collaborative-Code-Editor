@@ -1,0 +1,249 @@
+/* =========================================================================
+   CULLET design system — Code-Sync edition
+   Ink ground, bone text, mist secondary, one ember used as heat.
+   Unbounded 600 headlines at negative tracking, Manrope 300 body,
+   Manrope 500 furniture at +.2em uppercase. Radii 0. No shadows.
+   The only texture is generated light (canvas, screen-blended).
+   ========================================================================= */
+
+/* ---------- self-hosted faces ---------- */
+@font-face {
+  font-family: 'Unbounded';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('fonts/Unbounded-600.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Manrope';
+  font-style: normal;
+  font-weight: 200 800;
+  font-display: swap;
+  src: url('fonts/Manrope[wght].woff2') format('woff2');
+}
+@font-face {
+  font-family: 'JetBrains Mono';
+  font-style: normal;
+  font-weight: 100 800;
+  font-display: swap;
+  src: url('fonts/JetBrainsMono[wght].woff2') format('woff2');
+}
+
+/* ---------- tokens ---------- */
+:root {
+  --ink:   #070908;
+  --ink-2: #0d1110;
+  --ink-3: #101412;
+  --bone:  #e9ede6;
+  --bone-2:#dfe4dd;
+  --mist:  #a9b5b2;
+  --ember: #e44b3c;
+
+  --hair:  rgba(233, 237, 230, .16);
+  --hair-2:rgba(233, 237, 230, .08);
+
+  --disp:  'Unbounded', 'Avenir Next', 'Futura', sans-serif;
+  --sans:  'Manrope', 'Helvetica Neue', Arial, sans-serif;
+  --mono:  'JetBrains Mono', 'Cascadia Code', Consolas, monospace;
+
+  --ease:  cubic-bezier(.16, 1, .3, 1);      /* soft, lands like glass   */
+  --mech:  cubic-bezier(.65, 0, .35, 1);     /* mechanical, no softness  */
+}
+
+/* ---------- ground ---------- */
+* { box-sizing: border-box; }
+html { scroll-behavior: auto; }
+html, body { margin: 0; padding: 0; }
+body {
+  background: var(--ink);
+  color: var(--bone);
+  font-family: var(--sans);
+  font-weight: 300;
+  font-size: 15px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overflow-x: clip;
+}
+::selection { background: rgba(228, 75, 60, .32); color: var(--bone); }
+
+a { color: inherit; text-decoration: none; }
+img, svg, canvas { display: block; }
+button, input { font: inherit; color: inherit; }
+h1, h2, h3, p { margin: 0; }
+
+/* ---------- type ---------- */
+.u-disp {
+  font-family: var(--disp);
+  font-weight: 600;
+  letter-spacing: -.05em;
+  line-height: 1.04;
+  text-transform: uppercase;
+}
+/* the poster-scale wordmark tightens further */
+.u-poster { letter-spacing: -.075em; }
+
+.furn {
+  font-family: var(--sans);
+  font-weight: 500;
+  font-size: clamp(.8rem, 1vw, 1rem);
+  letter-spacing: .2em;
+  text-transform: uppercase;
+}
+.furn-s {
+  font-family: var(--sans);
+  font-weight: 500;
+  font-size: .72rem;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+}
+
+.lede {
+  color: var(--mist);
+  font-size: 1.06rem;
+  line-height: 1.6;
+  max-width: 58ch;
+}
+.lede strong { color: var(--bone-2); font-weight: 500; }
+
+.ember { color: var(--ember); }
+
+/* ---------- hairline rules ---------- */
+.rule    { height: 1px; background: var(--hair); border: 0; margin: 0; }
+.rule-2  { height: 1px; background: var(--hair-2); border: 0; margin: 0; }
+
+/* ---------- buttons: one ember, zero radii ---------- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: .7em;
+  padding: 1em 1.7em;
+  border: 1px solid var(--hair);
+  background: transparent;
+  color: var(--bone);
+  cursor: pointer;
+  border-radius: 0;
+  transition: background .3s var(--ease), border-color .3s var(--ease), color .3s var(--ease);
+}
+.btn:hover { border-color: var(--bone); }
+.btn-ember {
+  background: var(--ember);
+  border-color: var(--ember);
+  color: #160907;
+}
+.btn-ember:hover { background: #f05a4b; border-color: #f05a4b; color: #160907; }
+.btn-ghost { background: transparent; }
+.btn-ghost:hover { border-color: var(--bone); }
+
+/* ---------- per-word split atoms ---------- */
+/* every headline / statement / lede / column paragraph splits into
+   per-word inline-block spans rising .4em on a 36ms stagger */
+[data-split] .w {
+  display: inline-block;
+  white-space: pre;
+  will-change: transform, opacity;
+}
+[data-split]:not([data-split="flat"]) .w {
+  opacity: 0;
+  transform: translateY(.4em);
+  transition: opacity .7s var(--ease), transform .7s var(--ease);
+  transition-delay: var(--wd, 0ms);
+}
+[data-split]:not([data-split="flat"]).split-on .w {
+  opacity: 1;
+  transform: none;
+}
+/* flat variant: identical DOM, no motion — used where an exact
+   absolutely-positioned clone must match the base to the pixel */
+
+/* ---------- reveal engine ---------- */
+/* every row, cell, strap, link carries data-rev and its own --d delay,
+   revealed by one IntersectionObserver at threshold .12 */
+[data-rev] {
+  opacity: 0;
+  transform: translateY(.4em);
+  transition: opacity .8s var(--ease), transform .8s var(--ease);
+  transition-delay: var(--d, 0ms);
+}
+[data-rev].rev-on { opacity: 1; transform: none; }
+/* keep lit states (curve rows) from being overridden */
+[data-rev].rev-hold { opacity: var(--hold, .28); transform: none; transition: none; }
+
+/* ---------- nav ---------- */
+.nav {
+  position: fixed;
+  inset: 0 0 auto 0;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  padding: 1.1rem clamp(1.2rem, 4vw, 3rem);
+  background: transparent;
+  border-bottom: 1px solid transparent;
+  transition: background .4s var(--ease), border-color .4s var(--ease);
+}
+.nav.scrolled {
+  background: rgba(7, 9, 8, .82);
+  border-bottom-color: var(--hair-2);
+  backdrop-filter: blur(10px);
+}
+.nav .mark {
+  font-family: var(--disp);
+  font-weight: 600;
+  font-size: 1rem;
+  letter-spacing: -.05em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.nav .links {
+  display: flex;
+  gap: 2rem;
+  margin-left: auto;
+  align-items: center;
+}
+.nav .links a.furn-s {
+  color: var(--mist);
+  transition: color .25s var(--ease);
+}
+.nav .links a.furn-s:hover { color: var(--bone); }
+.nav .btn { padding: .72em 1.2em; }
+@media (max-width: 700px) {
+  .nav .links a.furn-s { display: none; }
+}
+
+/* ---------- footer ---------- */
+.footer {
+  border-top: 1px solid var(--hair-2);
+  padding: 3rem clamp(1.2rem, 4vw, 3rem) 2.4rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.4rem 3rem;
+  align-items: baseline;
+  background: var(--ink);
+}
+.footer .mark {
+  font-family: var(--disp);
+  font-weight: 600;
+  font-size: .95rem;
+  letter-spacing: -.05em;
+  text-transform: uppercase;
+}
+.footer .furn-s { color: var(--mist); }
+.footer .fnote { color: var(--mist); max-width: 44ch; }
+.footer .right { margin-left: auto; display: flex; gap: 2rem; }
+
+/* ---------- scrollbars (editor + page) ---------- */
+* { scrollbar-width: thin; scrollbar-color: rgba(233,237,230,.18) transparent; }
+*::-webkit-scrollbar { width: 10px; height: 10px; }
+*::-webkit-scrollbar-thumb { background: rgba(233,237,230,.14); border: 3px solid var(--ink); border-radius: 0; }
+*::-webkit-scrollbar-track { background: transparent; }
+
+/* ---------- reduced motion ---------- */
+@media (prefers-reduced-motion: reduce) {
+  [data-split]:not([data-split="flat"]) .w,
+  [data-rev] {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+}

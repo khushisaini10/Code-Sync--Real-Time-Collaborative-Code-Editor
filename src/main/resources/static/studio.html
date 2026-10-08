@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Studio — Code-Sync</title>
+  <meta name="description" content="The Code-Sync studio: a real-time collaborative code editor with operational transform.">
+  <link rel="icon" href="logo.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="assets/cullet.css">
+  <link rel="stylesheet" href="assets/studio.css">
+</head>
+<body class="studio">
+
+  <div id="app" aria-label="Code-Sync studio">
+    <header>
+      <a class="brand" href="./" aria-label="Code-Sync home">
+        <img src="logo.svg" alt="" width="22" height="22">
+        <span class="u-disp">Code-<b class="ember">Sync</b></span>
+      </a>
+      <div id="presence" aria-live="polite"></div>
+      <div class="spacer"></div>
+      <input id="name" placeholder="Your name" maxlength="20" autocomplete="off" spellcheck="false" aria-label="Your name">
+      <input id="room" class="mono" placeholder="Room" maxlength="32" autocomplete="off" spellcheck="false" aria-label="Room code">
+      <button id="join" class="furn-s">Join</button>
+      <button id="share" class="ghost furn-s">Copy link</button>
+    </header>
+
+    <div class="workspace">
+      <div id="gutter" aria-hidden="true">1</div>
+      <div class="code">
+        <pre id="hl" aria-hidden="true"></pre>
+        <textarea id="ta" spellcheck="false" wrap="off" autocomplete="off" autocapitalize="off" readonly aria-label="Shared code buffer"></textarea>
+      </div>
+    </div>
+
+    <footer>
+      <span id="pos">Ln 1, Col 1</span>
+      <span id="count"></span>
+      <span id="conn" class="connecting">connecting</span>
+    </footer>
+  </div>
+
+  <script src="assets/studio.js"></script>
+</body>
+</html>

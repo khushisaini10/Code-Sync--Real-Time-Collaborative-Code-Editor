@@ -1,0 +1,413 @@
+/* =========================================================================
+   LANDING — four pinned stages + normal bands
+   Every animated quantity is a CSS custom property written by ONE rAF loop.
+   ========================================================================= */
+
+.landing { background: var(--ink); }
+
+/* ---------- stage chrome ---------- */
+.stage {
+  position: relative;
+  height: var(--h, 300svh);
+  background: var(--ink);
+}
+.pin {
+  position: sticky;
+  top: 0;
+  height: 100svh;
+  overflow: hidden;
+  display: flex;
+}
+
+/* =========================================================================
+   STAGE 1 — molten glow hero
+   ========================================================================= */
+.s-hero .pin { background: var(--ink); }
+.glow-field {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  mix-blend-mode: screen;          /* gradients add as light, never cover */
+  opacity: calc(.55 + var(--p1, 0) * .45);
+  pointer-events: none;
+}
+.lockup {
+  position: relative;
+  z-index: 2;
+  margin: auto;
+  width: 100%;                    /* full width so the wordmark can be measured against it */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 0 clamp(1.2rem, 4vw, 3rem);
+  transform: translateY(calc(var(--p1, 0) * -52px));
+  opacity: calc(1 - var(--p1, 0) * 1.3);
+  will-change: transform, opacity;
+}
+.strap { color: var(--mist); }
+.hero-lede { margin-top: clamp(1.2rem, 2.4vh, 2rem); }
+
+/* wordmark sized from its character count and the face's own width.
+   Unbounded averages ~.68em advance, so a vw value tuned on a condensed
+   face would overflow badly — this formula cannot. */
+.wordmark {
+  margin-top: clamp(.8rem, 2vh, 1.6rem);
+  font-size: min(clamp(3rem, 37vw, 22rem), calc(90vw / (9 * .68)));
+  line-height: .96;
+  white-space: nowrap;
+  display: block;
+  max-width: 100%;                /* clamp the flex item so scrollWidth can report overflow */
+  overflow: hidden;
+}
+.wm-a { color: var(--bone); }
+.wm-b { color: var(--ember); }
+
+.hero-corner {
+  position: absolute;
+  z-index: 2;
+  bottom: clamp(1.4rem, 4vh, 2.6rem);
+  color: var(--mist);
+}
+.hero-corner.tl { left: clamp(1.2rem, 4vw, 3rem); }
+.hero-corner.tr { right: clamp(1.2rem, 4vw, 3rem); text-align: right; }
+
+.cue {
+  position: absolute;
+  z-index: 2;
+  bottom: clamp(1.2rem, 3.4vh, 2.2rem);
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .7rem;
+  color: var(--mist);
+}
+.cue-line {
+  position: relative;
+  width: 1px;
+  height: 46px;
+  background: var(--hair);
+  overflow: hidden;
+}
+.cue-line::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 1px;
+  height: 12px;
+  background: var(--ember);
+  animation: cueDrop 2.2s var(--mech) infinite;
+}
+@keyframes cueDrop {
+  from { transform: translateY(-14px); }
+  to   { transform: translateY(48px); }
+}
+
+/* =========================================================================
+   STAGE 2 — left-to-right wipe
+   ========================================================================= */
+.s-wipe .pin {
+  background: var(--ink-2);
+  flex-direction: column;
+  justify-content: center;
+  padding: 0 clamp(1.2rem, 6vw, 5rem);
+}
+.wipe-wrap { position: relative; width: max-content; max-width: 92vw; }
+.wipe-text { position: relative; }
+.statement {
+  font-size: clamp(1.9rem, 6.4vw, 5.4rem);
+  line-height: 1.08;
+  letter-spacing: -.05em;
+  text-transform: uppercase;
+  margin: 0;
+}
+.wipe-base { color: rgba(233, 237, 230, .16); }
+.wipe-clone {
+  position: absolute;
+  inset: 0;
+  color: var(--bone);
+  clip-path: inset(0 calc((1 - var(--p2, 0)) * 100%) 0 0);
+  pointer-events: none;
+}
+.wipe-rule {
+  height: 1px;
+  margin-top: clamp(1.6rem, 4vh, 2.8rem);
+  background: var(--hair-2);
+}
+#wipeFill {
+  display: block;
+  height: 100%;
+  width: 100%;
+  background: var(--ember);
+  transform: scaleX(var(--p2, 0));
+  transform-origin: left center;
+}
+.wipe-foot {
+  position: absolute;
+  left: clamp(1.2rem, 6vw, 5rem);
+  right: clamp(1.2rem, 6vw, 5rem);
+  bottom: clamp(1.4rem, 4vh, 2.6rem);
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: .8rem 2.4rem;
+  color: var(--mist);
+}
+
+/* =========================================================================
+   STAGE 3 — scroll-traced data curve
+   ========================================================================= */
+.s-curve .pin {
+  background: var(--ink-3);
+  align-items: center;
+  padding: clamp(4.6rem, 9vh, 6.5rem) clamp(1.2rem, 4vw, 3rem) clamp(2rem, 5vh, 3rem);
+}
+.curve-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+  gap: clamp(2rem, 5vw, 5rem);
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  max-width: 1500px;
+  margin: 0 auto;
+}
+.kicker { color: var(--mist); }
+.curve-title {
+  font-size: clamp(1.7rem, 3.6vw, 3.4rem);
+  max-width: 14ch;
+  margin-top: 1.1rem;
+}
+.curve-title em { font-style: normal; }
+
+.rows { margin-top: clamp(1.4rem, 3.4vh, 2.6rem); }
+.prow {
+  display: grid;
+  grid-template-columns: clamp(5.6rem, 9vw, 8rem) 1fr;
+  align-items: baseline;
+  column-gap: 1.4rem;
+  padding: .78rem 0;
+  border-top: 1px solid var(--hair-2);
+  opacity: .28;                                   /* dim until the trace reaches them */
+  transition: opacity .5s var(--ease), border-color .5s var(--ease);
+}
+.prow:last-child { border-bottom: 1px solid var(--hair-2); }
+.prow.lit { opacity: 1; border-top-color: var(--hair); }
+.pval {
+  font-family: var(--disp);
+  font-weight: 600;
+  font-size: clamp(1.2rem, 2.2vw, 1.9rem);
+  letter-spacing: -.05em;
+  color: var(--ember);
+  white-space: nowrap;
+}
+.pval i {
+  font-style: normal;
+  font-size: .55em;
+  margin-left: .3em;
+  color: var(--mist);
+}
+.plabel {
+  font-weight: 600;
+  color: var(--bone-2);
+  letter-spacing: .02em;
+}
+.prow .pnote {
+  grid-column: 2;
+  color: var(--mist);
+  font-size: .86rem;
+  line-height: 1.5;
+}
+
+.plot { margin: 0; display: flex; flex-direction: column; height: min(72svh, 640px); }
+.plot-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  color: var(--mist);
+  padding-bottom: .85rem;
+  border-bottom: 1px solid var(--hair-2);
+}
+.plot-unit { color: var(--bone-2); }
+.plot-box {
+  position: relative;
+  flex: 1;
+  margin-top: 1rem;
+  border: 1px solid var(--hair);
+  background: rgba(7, 9, 8, .5);
+}
+.plot-box canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+.readout {
+  position: absolute;
+  right: clamp(.9rem, 2vw, 1.6rem);
+  bottom: clamp(3.6rem, 8vh, 4.8rem);   /* clear of the station labels */
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: .3rem;
+  pointer-events: none;
+}
+.readout-num {
+  font-size: clamp(2.1rem, 4.6vw, 4.2rem);
+  line-height: 1;
+  color: var(--ember);
+  font-variant-numeric: tabular-nums;
+}
+.readout-cap { color: var(--mist); }
+
+/* =========================================================================
+   STAGE 4 — scaling molten form
+   ========================================================================= */
+.s-gather .pin {
+  background: var(--ink-2);
+  align-items: flex-end;
+}
+.gather-field {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  mix-blend-mode: screen;
+  transform: scale(calc(.72 + var(--p4, 0) * .5));   /* 0.72 -> 1.22 */
+  transform-origin: 50% 46%;
+  will-change: transform;
+  pointer-events: none;
+}
+.gather-content {
+  position: relative;
+  z-index: 2;
+  padding: 0 clamp(1.2rem, 4vw, 3rem) clamp(2.2rem, 7vh, 4.5rem);
+  width: 100%;
+}
+.closing { font-size: clamp(2.3rem, 7.4vw, 6.4rem); max-width: 12ch; }
+.gather-content .btn { margin-top: clamp(1.4rem, 3.6vh, 2.4rem); }
+.gather-note { color: var(--mist); margin-top: 1.1rem; }
+
+/* =========================================================================
+   NORMAL BANDS
+   ========================================================================= */
+.band {
+  padding: clamp(5rem, 13vh, 9.5rem) clamp(1.2rem, 4vw, 3rem);
+  background: var(--ink);
+  max-width: 1500px;
+  margin: 0 auto;
+}
+.band-table { background: var(--ink-2); max-width: none; }
+.band-table > * { max-width: 1500px; margin-left: auto; margin-right: auto; }
+
+.band-title {
+  font-size: clamp(1.9rem, 4.6vw, 4rem);
+  max-width: 22ch;
+  margin: 1.3rem 0 clamp(2.6rem, 7vh, 4.5rem);
+}
+
+/* explainer */
+.cols {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(2rem, 4vw, 3.5rem);
+}
+.col { border-top: 1px solid var(--hair); padding-top: 1.5rem; }
+.col-num {
+  display: block;
+  font-size: .95rem;
+  color: var(--mist);
+}
+.col-title {
+  font-size: clamp(1.12rem, 1.7vw, 1.45rem);
+  margin: .95rem 0 1rem;
+  letter-spacing: -.04em;
+}
+.col-body { color: var(--mist); font-size: .95rem; }
+
+/* commission table */
+.table { width: 100%; }
+.trow {
+  display: grid;
+  grid-template-columns: minmax(9.5rem, 15rem) 1fr auto;
+  align-items: baseline;
+  gap: 1.2rem 2.5rem;
+  padding: 1.2rem 0;
+  border-bottom: 1px solid var(--hair-2);
+}
+.trow:first-child { border-top: 1px solid var(--hair); }
+.tname {
+  font-weight: 600;
+  font-size: .82rem;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--bone-2);
+}
+.tdesc { color: var(--mist); }
+.tfig {
+  justify-self: end;
+  font-size: clamp(1.1rem, 2vw, 1.55rem);
+  letter-spacing: -.05em;
+  color: var(--ember);
+  white-space: nowrap;
+}
+@media (max-width: 700px) {
+  .trow { grid-template-columns: 1fr auto; }
+  .tdesc { grid-column: 1 / -1; grid-row: 2; }
+}
+
+/* faq */
+.faq-list { max-width: 940px; }
+.faq-list details { border-top: 1px solid var(--hair-2); }
+.faq-list details:last-child { border-bottom: 1px solid var(--hair-2); }
+.faq-list summary {
+  list-style: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.4rem;
+  padding: 1.2rem 0;
+  cursor: pointer;
+  font-size: clamp(.95rem, 1.6vw, 1.2rem);
+  letter-spacing: -.04em;
+  color: var(--bone);
+  transition: color .3s var(--ease);
+}
+.faq-list summary::-webkit-details-marker { display: none; }
+.faq-list summary:hover { color: var(--bone-2); }
+.faq-list summary:focus-visible { outline: 1px solid var(--ember); outline-offset: 4px; }
+.plus { position: relative; width: 13px; height: 13px; flex: none; }
+.plus::before, .plus::after {
+  content: "";
+  position: absolute;
+  background: var(--ember);
+  transition: transform .35s var(--mech);
+}
+.plus::before { left: 0; right: 0; top: 6px; height: 1px; }
+.plus::after  { top: 0; bottom: 0; left: 6px; width: 1px; }
+details[open] .plus::after { transform: scaleY(0); }
+.ans {
+  color: var(--mist);
+  max-width: 62ch;
+  padding: 0 0 1.4rem;
+  font-size: .95rem;
+}
+
+/* ---------- responsive ---------- */
+@media (max-width: 980px) {
+  .curve-grid { grid-template-columns: 1fr; align-items: stretch; gap: 1.6rem; }
+  .curve-title { font-size: clamp(1.5rem, 6vw, 2.2rem); }
+  .plot { height: min(38svh, 420px); }
+  .rows { margin-top: 1rem; }
+}
+@media (max-width: 760px) {
+  .cols { grid-template-columns: 1fr; gap: 2.4rem; }
+  .hero-corner { display: none; }
+  .prow .pnote { display: none; }
+  .prow { grid-template-columns: clamp(4.8rem, 18vw, 6rem) 1fr; padding: .6rem 0; }
+  .wipe-foot { justify-content: flex-start; }
+}
+
+/* ---------- reduced motion ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .cue-line::after { animation: none; }
+}

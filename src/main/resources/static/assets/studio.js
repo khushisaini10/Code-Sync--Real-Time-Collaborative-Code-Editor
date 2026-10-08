@@ -1,3 +1,12 @@
+/* =========================================================================
+   STUDIO ENGINE — Code-Sync
+   Sync maths mirror OtEngine.java on the server. An edit is {from, to,
+   text}: replace [from, to) with text. One edit per client in flight,
+   acked by the server echoing the op back.
+   Adds a solo fallback: if the sync server is unreachable, the buffer
+   stays editable locally and the whole page is pushed as ONE op the
+   moment the socket returns.
+   ========================================================================= */
 (() => {
   'use strict';
 
@@ -5,12 +14,21 @@
   const ta = $('ta'), hl = $('hl'), gutter = $('gutter');
   const posEl = $('pos'), countEl = $('count'), connEl = $('conn');
   const roomInput = $('room'), nameInput = $('name'), presenceEl = $('presence');
-  const splash = $('splash'), app = $('app');
 
-  // =====================================================================
-  //  Sync maths: mirrors OtEngine.java on the server. Keep the two in step.
-  //  An edit is {from, to, text}: replace [from, to) with text.
-  // =====================================================================
+  const STARTER = [
+    '// Server unreachable - solo mode. Keep typing; this buffer will be',
+    '// pushed as one operation the moment the socket comes back.',
+    'public class Hello {',
+    '    public static void main(String[] args) {',
+    '        System.out.println("Hello, Code-Sync!");',
+    '    }',
+    '}',
+    ''
+  ].join('\n');
+
+  /* =====================================================================
+     OT maths (identical to the original engine)
+     ===================================================================== */
   function mapPos(p, ag, againstFirst, isFrom) {
     const af = ag.from, at = ag.to;
     if (p < af) return p;
@@ -45,9 +63,9 @@
     return op.from + op.text.length;
   }
 
-  // =====================================================================
-  //  Syntax highlighting (Java)
-  // =====================================================================
+  /* =====================================================================
+     Syntax highlighting (Java)
+     ===================================================================== */
   const KEYWORDS = 'abstract|assert|boolean|break|byte|case|catch|char|class|const|continue|default|do|double|' +
     'else|enum|extends|final|finally|float|for|if|implements|import|instanceof|int|interface|long|new|package|' +
     'private|protected|public|return|short|static|super|switch|this|throw|throws|try|void|volatile|while|var|' +
@@ -70,9 +88,9 @@
     return out + esc(src.slice(last));
   }
 
-  // =====================================================================
-  //  Rendering
-  // =====================================================================
+  /* =====================================================================
+     Rendering
+     ===================================================================== */
   let lastLines = 0;
 
   function syncScroll() {
@@ -87,12 +105,12 @@
     const line = before.split('\n').length;
     const col = p - before.lastIndexOf('\n');
     posEl.textContent = 'Ln ' + line + ', Col ' + col;
-    countEl.textContent = ta.value.length + ' chars  |  ' + ta.value.split('\n').length + ' lines';
+    countEl.textContent = ta.value.length + ' chars | ' + ta.value.split('\n').length + ' lines';
   }
 
   function render() {
     const text = ta.value;
-    hl.innerHTML = highlight(text) + '\n'; // trailing newline keeps both layers the same height
+    hl.innerHTML = highlight(text) + '\n';
     const lines = text.split('\n').length;
     if (lines !== lastLines) {
       gutter.textContent = Array.from({ length: lines }, (_, i) => i + 1).join('\n');
@@ -111,40 +129,72 @@
     presenceEl.replaceChildren(...users.map((u) => {
       const chip = document.createElement('span');
       chip.className = 'chip';
-      chip.style.setProperty('--c', /^#[0-9A-Fa-f]{6}$/.test(u.color) ? u.color : '#22D3EE');
+      chip.style.setProperty('--c', /^#[0-9A-Fa-f]{6}$/.test(u.color) ? u.color : '#E44B3C');
       chip.textContent = u.name + (u.id === clientId ? ' (you)' : ''); // textContent: names come from other users
       return chip;
     }));
   }
 
-  // =====================================================================
-  //  Live sync over WebSocket
-  // =====================================================================
+  /* =====================================================================
+     Live sync over WebSocket — with a solo fallback
+     ===================================================================== */
   let ws = null;
   let clientId = null;
-  let ready = false;          // true once the server has sent us the document
+  let ready = false;          // true once the document is in the buffer
   let serverText = '';        // the document as the server last confirmed it
   let serverVersion = 0;      // how many edits serverText includes
   let outstanding = false;    // one edit at a time is in flight
 
+  let attempts = 0;           // consecutive failed connections
+  let everConnected = false;  // have we EVER received an init?
+  let solo = false;           // editing locally, server unreachable
+  let soloDirty = false;      // the user typed while solo
+  let retryTimer = null;
+
   function connect() {
+    clearTimeout(retryTimer);
     setConn('connecting', 'connecting');
     const scheme = location.protocol === 'https:' ? 'wss://' : 'ws://';
-    ws = new WebSocket(scheme + location.host + '/ws/editor');
-    ws.onopen = join;
+    try {
+      ws = new WebSocket(scheme + location.host + '/ws/editor');
+    } catch (_) {
+      onDown();
+      return;
+    }
+    // some servers leave a dead upgrade pending forever — never wait on it
+    const openGuard = setTimeout(() => { try { if (ws) ws.close(); } catch (_) { /* noop */ } }, 3000);
+    ws.onopen = () => { clearTimeout(openGuard); attempts = 0; join(); };
     ws.onmessage = (e) => handle(JSON.parse(e.data));
-    ws.onclose = () => {
-      ready = false;
-      outstanding = false;
-      ta.readOnly = true;
+    ws.onclose = () => { clearTimeout(openGuard); onDown(); };
+    ws.onerror = () => { try { ws.close(); } catch (_) { /* noop */ } };
+  }
+
+  function onDown() {
+    ready = false;
+    outstanding = false;
+    attempts++;
+    if (attempts >= 2) enterSolo();
+    else {
+      ta.readOnly = !solo ? true : false;  // stay editable if solo was already on
       setConn('offline', 'offline - retrying');
-      setTimeout(connect, 2000);
-    };
+      retryTimer = setTimeout(connect, 1500);
+    }
+  }
+
+  /** The server is gone: keep the buffer warm and editable, retry quietly. */
+  function enterSolo() {
+    solo = true;
+    ready = true;
+    if (!everConnected && !ta.value) ta.value = STARTER;
+    ta.readOnly = false;
+    if (!everConnected) { serverText = ta.value; serverVersion = 0; }
+    render();
+    setConn('solo', 'solo - no server');
+    retryTimer = setTimeout(connect, 6000);
   }
 
   function join() {
-    ready = false;
-    ta.readOnly = true;
+    ready = solo;               // stay locally usable until the snapshot lands
     if (ws && ws.readyState === WebSocket.OPEN) {
       ws.send(JSON.stringify({ type: 'join', room: roomInput.value.trim(), name: nameInput.value.trim() }));
     }
@@ -153,17 +203,7 @@
   function handle(msg) {
     switch (msg.type) {
       case 'init':
-        clientId = msg.clientId;
-        serverText = msg.text;
-        serverVersion = msg.version;
-        outstanding = false;
-        ready = true;
-        ta.readOnly = false;
-        ta.value = msg.text;
-        roomInput.value = msg.room;
-        history.replaceState(null, '', '?room=' + encodeURIComponent(msg.room));
-        render();
-        setConn('live', 'live - room ' + msg.room);
+        onInit(msg);
         break;
       case 'op':
         onOp(msg);
@@ -174,6 +214,38 @@
       default:
         break;
     }
+  }
+
+  function onInit(msg) {
+    everConnected = true;
+    solo = false;
+    clearTimeout(retryTimer);
+    clientId = msg.clientId;
+    roomInput.value = msg.room;
+    history.replaceState(null, '', '?room=' + encodeURIComponent(msg.room));
+
+    const local = ta.value;
+    const drifted = soloDirty && local !== msg.text;
+
+    serverText = msg.text;
+    serverVersion = msg.version;
+    ready = true;
+    ta.readOnly = false;
+
+    if (drifted) {
+      // push everything typed in solo mode as ONE whole-buffer operation
+      ta.value = local;
+      outstanding = true;
+      ws.send(JSON.stringify({
+        type: 'edit', version: serverVersion, from: 0, to: msg.text.length, text: local
+      }));
+    } else {
+      ta.value = msg.text;
+      outstanding = false;
+    }
+    soloDirty = false;
+    render();
+    setConn('live', 'live - room ' + msg.room);
   }
 
   function onOp(m) {
@@ -212,10 +284,14 @@
     ws.send(JSON.stringify({ type: 'edit', version: serverVersion, from: d.from, to: d.to, text: d.text }));
   }
 
-  // =====================================================================
-  //  Editor events
-  // =====================================================================
-  ta.addEventListener('input', () => { render(); flush(); });
+  /* =====================================================================
+     Editor events
+     ===================================================================== */
+  ta.addEventListener('input', () => {
+    if (solo) soloDirty = true;
+    render();
+    flush();
+  });
   ta.addEventListener('scroll', syncScroll);
   document.addEventListener('selectionchange', () => { if (document.activeElement === ta) updateStatus(); });
 
@@ -227,10 +303,10 @@
     }
   });
 
-  $('join').addEventListener('click', join);
-  roomInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') join(); });
+  $('join').addEventListener('click', () => { soloDirty = soloDirty && everConnected; join(); });
+  roomInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') $('join').click(); });
   $('share').addEventListener('click', () => {
-    const link = location.origin + '/?room=' + encodeURIComponent(roomInput.value.trim() || 'main');
+    const link = location.origin + '/studio.html?room=' + encodeURIComponent(roomInput.value.trim() || 'main');
     const done = () => { $('share').textContent = 'Copied!'; setTimeout(() => { $('share').textContent = 'Copy link'; }, 1500); };
     if (navigator.clipboard) navigator.clipboard.writeText(link).then(done, () => window.prompt('Copy this link:', link));
     else window.prompt('Copy this link:', link);
@@ -240,45 +316,20 @@
     try { localStorage.setItem('codesync-name', nameInput.value.trim()); } catch (_) { /* private mode */ }
   });
 
-  // =====================================================================
-  //  Opening screen
-  // =====================================================================
-  const BRAND = 'Code-Sync';
-  const SPLIT = 5;                            // "Code-" white, "Sync" cyan
-  const STEPS = ['Warming up the engine...', 'Loading syntax rules...', 'Connecting to sync server...', 'Ready.'];
-  const DURATION = 3200;
-  const clamp = (v) => Math.max(0, Math.min(1, v));
-  const t0 = performance.now();
-
-  function finishSplash() {
-    const wait = ready ? 0 : 1200;            // give the socket a moment if it is slow
-    setTimeout(() => {
-      app.classList.remove('hidden');
-      splash.classList.add('out');
-      setTimeout(() => splash.remove(), 700);
-      ta.focus();
-    }, wait);
-  }
-
-  function tick(now) {
-    const p = clamp((now - t0) / DURATION);
-    $('bar-fill').style.width = (p * 100) + '%';
-    const chars = Math.ceil(BRAND.length * clamp((p - 0.25) / 0.4));
-    $('brand-w').textContent = BRAND.slice(0, Math.min(SPLIT, chars));
-    $('brand-y').textContent = BRAND.slice(SPLIT, chars);
-    $('status').textContent = STEPS[Math.min(STEPS.length - 1, Math.floor(p * STEPS.length))];
-    if (p < 1) requestAnimationFrame(tick); else finishSplash();
-  }
-
-  // =====================================================================
-  //  Start
-  // =====================================================================
+  /* =====================================================================
+     Start
+     ===================================================================== */
   const params = new URLSearchParams(location.search);
   roomInput.value = (params.get('room') || 'main').replace(/[^A-Za-z0-9_-]/g, '').slice(0, 32) || 'main';
-  try { nameInput.value = localStorage.getItem('codesync-name') || ''; } catch (_) { /* ignore */ }
+  const urlName = (params.get('name') || '').trim().slice(0, 20);
+  if (urlName) {
+    nameInput.value = urlName;
+    try { localStorage.setItem('codesync-name', urlName); } catch (_) { /* private mode */ }
+  } else {
+    try { nameInput.value = localStorage.getItem('codesync-name') || ''; } catch (_) { /* ignore */ }
+  }
   if (!nameInput.value) nameInput.value = 'Guest-' + (100 + Math.floor(Math.random() * 900));
 
   render();
   connect();
-  requestAnimationFrame(tick);
 })();

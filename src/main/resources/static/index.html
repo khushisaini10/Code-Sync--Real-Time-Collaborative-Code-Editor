@@ -3,64 +3,264 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Code-Sync</title>
+  <title>Code-Sync — keep it molten</title>
+  <meta name="description" content="Code-Sync is a real-time collaborative code editor. Shared rooms, operational transform, one ordered authority — many hands, one document, no conflicts.">
   <link rel="icon" href="logo.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="assets/cullet.css">
+  <link rel="stylesheet" href="assets/landing.css">
 </head>
-<body>
+<body class="landing">
 
-  <!-- ===== OPENING SCREEN ===== -->
-  <div id="splash">
-    <div class="logo-wrap">
-      <div class="glow"></div>
-      <svg class="logo" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg" aria-label="Code-Sync logo">
-        <defs>
-          <linearGradient id="gs" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0" stop-color="#22D3EE"/>
-            <stop offset="1" stop-color="#8B5CF6"/>
-          </linearGradient>
-        </defs>
-        <rect width="120" height="120" rx="36" fill="url(#gs)"/>
-        <g fill="none" stroke="#fff" stroke-width="8.4" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M36 33.6 L16.8 60 L36 86.4"/>
-          <path d="M84 33.6 L103.2 60 L84 86.4"/>
-          <path class="pulse" pathLength="1" d="M43.2 60 H51.6 L57.6 38.4 L64.8 81.6 L70.8 60 H76.8"/>
-        </g>
-      </svg>
+  <!-- ===== NAV ===== -->
+  <nav class="nav" id="nav">
+    <a class="mark" href="./" aria-label="Code-Sync home">Code-<span class="ember">Sync</span></a>
+    <div class="links">
+      <a class="furn-s" href="#protocol">The pipeline</a>
+      <a class="furn-s" href="#spec">Spec</a>
+      <a class="furn-s" href="#faq">FAQ</a>
+      <a class="btn btn-ember furn-s" href="login.html" data-rev>Open studio</a>
     </div>
-    <h1 id="brand"><span id="brand-w"></span><span id="brand-y"></span></h1>
-    <p id="tagline">Write code. Stay in sync.</p>
-    <div class="bar"><i id="bar-fill"></i></div>
-    <small id="status">Warming up the engine...</small>
-  </div>
+  </nav>
 
-  <!-- ===== EDITOR ===== -->
-  <div id="app" class="hidden">
-    <header>
-      <div class="brand"><img src="logo.svg" alt=""><span>Code-<b>Sync</b></span></div>
-      <div class="spacer"></div>
-      <div id="presence"></div>
-      <input id="name" placeholder="Your name" maxlength="20" autocomplete="off">
-      <input id="room" placeholder="Room" maxlength="32" autocomplete="off">
-      <button id="join">Join</button>
-      <button id="share" class="ghost">Copy link</button>
-    </header>
+  <main>
+    <!-- ============================================================
+         STAGE 1 — MOLTEN GLOW HERO · 300svh
+         five drifting radial ember gradients, screen-blended,
+         canvas opacity .55 -> 1 while the lockup lifts 52px and fades
+         ============================================================ -->
+    <section class="stage s-hero" id="stage-hero" style="--h:300svh">
+      <div class="pin">
+        <canvas class="glow-field" id="glowField" aria-hidden="true"></canvas>
 
-    <div class="workspace">
-      <div id="gutter">1</div>
-      <div class="code">
-        <pre id="hl" aria-hidden="true"></pre>
-        <textarea id="ta" spellcheck="false" wrap="off" autocomplete="off" autocapitalize="off" readonly></textarea>
+        <div class="lockup" id="lockup">
+          <p class="furn-s strap" data-rev>Real-time collaborative code editor</p>
+          <h1 class="wordmark u-disp u-poster" id="wordmark" aria-label="Code-Sync">
+            <span class="wm-a">Code-</span><span class="wm-b ember">Sync</span>
+          </h1>
+          <p class="lede hero-lede" data-split>
+            A shared studio where code stays molten. Every keystroke pours in live — diffed, transformed, settled — so many hands shape one document without a single conflict.
+          </p>
+        </div>
+
+        <div class="hero-corner tl furn-s" data-rev>Est. every room</div>
+        <div class="hero-corner tr furn-s" data-rev>One document</div>
+
+        <div class="cue" data-rev>
+          <span class="furn-s">Scroll</span>
+          <i class="cue-line" aria-hidden="true"></i>
+        </div>
       </div>
+    </section>
+
+    <!-- ============================================================
+         STAGE 2 — LEFT-TO-RIGHT WIPE · 280svh
+         statement sits at 16% bone; an exact clone fills bone
+         via clip-path inset as the stage scrubs; ember rule in step
+         ============================================================ -->
+    <section class="stage s-wipe" id="stage-wipe" style="--h:280svh">
+      <div class="pin">
+        <div class="wipe-wrap">
+          <div class="wipe-text">
+            <p class="statement u-disp wipe-base" id="wipeBase" data-split="flat">
+              Two cursors.<br>One document.<br>No conflicts.
+            </p>
+            <p class="statement u-disp wipe-clone" id="wipeClone" aria-hidden="true"></p>
+          </div>
+          <div class="wipe-rule" aria-hidden="true"><i id="wipeFill"></i></div>
+        </div>
+
+        <div class="wipe-foot">
+          <span class="furn-s" data-rev>OT engine — pairwise rebase</span>
+          <span class="furn-s" data-rev>One op in flight</span>
+          <span class="furn-s" data-rev>Zero merge dialogs</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================
+         STAGE 3 — SCROLL-TRACED DATA CURVE · 380svh
+         five process rows light cumulatively; the plot traces the
+         series in ember to the exact scroll progress and prints the
+         interpolated readout — one fact, rendered three ways
+         ============================================================ -->
+    <section class="stage s-curve" id="stage-curve" style="--h:380svh">
+      <div class="pin">
+        <div class="curve-grid">
+          <div class="curve-left">
+            <p class="furn-s kicker" data-rev>The pipeline</p>
+            <h2 class="curve-title u-disp" data-split>
+              One keystroke, <em class="ember">five stations.</em>
+            </h2>
+
+            <div class="rows" id="processRows">
+              <div class="prow" data-rev>
+                <span class="pval">0.2<i>ms</i></span>
+                <span class="plabel">Keystroke</span>
+                <span class="pnote">captured at the source, one op per flight</span>
+              </div>
+              <div class="prow" data-rev>
+                <span class="pval">1.4<i>ms</i></span>
+                <span class="plabel">Diff</span>
+                <span class="pnote">common prefix and suffix trimmed to the atom</span>
+              </div>
+              <div class="prow" data-rev>
+                <span class="pval">2.8<i>ms</i></span>
+                <span class="plabel">Transform</span>
+                <span class="pnote">rebased against every op that landed first</span>
+              </div>
+              <div class="prow" data-rev>
+                <span class="pval">38<i>ms</i></span>
+                <span class="plabel">Relay</span>
+                <span class="pnote">one websocket, ordered at a single authority</span>
+              </div>
+              <div class="prow" data-rev>
+                <span class="pval">5.5<i>ms</i></span>
+                <span class="plabel">Settle</span>
+                <span class="pnote">applied, acknowledged, at rest</span>
+              </div>
+            </div>
+          </div>
+
+          <figure class="plot" data-rev>
+            <figcaption class="plot-head furn-s">
+              <span>Round-trip latency</span>
+              <span class="plot-unit">ms</span>
+            </figcaption>
+            <div class="plot-box">
+              <canvas id="curveCanvas" aria-label="Latency curve traced by scroll"></canvas>
+              <div class="readout">
+                <span class="readout-num u-disp" id="readoutNum">0.0</span>
+                <span class="furn-s readout-cap">At this exact scroll</span>
+              </div>
+            </div>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================
+         STAGE 4 — SCALING MOLTEN FORM · 300svh
+         three nested wobbling forms, summed sines around a polar
+         loop, radial ember fill, whole canvas scales .72 -> 1.22
+         ============================================================ -->
+    <section class="stage s-gather" id="stage-gather" style="--h:300svh">
+      <div class="pin">
+        <canvas class="gather-field" id="gatherField" aria-hidden="true"></canvas>
+        <div class="gather-content">
+          <h2 class="closing u-disp" data-split>Keep it molten.</h2>
+          <div data-rev>
+            <a class="btn btn-ember furn-s" href="login.html">Open the studio</a>
+          </div>
+          <p class="furn-s gather-note" data-rev>No password — rooms are the keys</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== BAND — THREE-COLUMN EXPLAINER ===== -->
+    <section class="band band-explain" id="protocol">
+      <p class="furn-s kicker" data-rev>The craft</p>
+      <h2 class="band-title u-disp" data-split>Built like a workshop, not a chat app.</h2>
+
+      <div class="cols">
+        <article class="col" data-rev>
+          <span class="col-num u-disp">01</span>
+          <h3 class="col-title u-disp" data-split>Operational transform</h3>
+          <p class="col-body" data-split>
+            Concurrent edits are rebased pairwise the moment they land. Your text never shifts under someone else's cursor, and no keystroke is ever thrown away — every op is transformed, not rejected.
+          </p>
+        </article>
+        <article class="col" data-rev>
+          <span class="col-num u-disp">02</span>
+          <h3 class="col-title u-disp" data-split>Rooms, not repos</h3>
+          <p class="col-body" data-split>
+            Pick a room code and share the link. There is no signup, no project setup, no import ceremony. The document is simply there, warm, the second you arrive — and everyone you send the link to.
+          </p>
+        </article>
+        <article class="col" data-rev>
+          <span class="col-num u-disp">03</span>
+          <h3 class="col-title u-disp" data-split>One ordered authority</h3>
+          <p class="col-body" data-split>
+            A single server orders every operation and echoes it back as the acknowledgement. Clients keep one edit in flight, so convergence is a property of the protocol — not of luck or timers.
+          </p>
+        </article>
+      </div>
+    </section>
+
+    <!-- ===== BAND — COMMISSION TABLE ===== -->
+    <section class="band band-table" id="spec">
+      <p class="furn-s kicker" data-rev>The spec</p>
+      <h2 class="band-title u-disp" data-split>Measured, not promised.</h2>
+
+      <div class="table">
+        <div class="trow" data-rev>
+          <span class="tname">Round-trip</span>
+          <span class="tdesc">one websocket, ordered at the server</span>
+          <span class="tfig u-disp">38 ms</span>
+        </div>
+        <div class="trow" data-rev>
+          <span class="tname">Merge conflicts</span>
+          <span class="tdesc">every keystroke rebased pairwise</span>
+          <span class="tfig u-disp">0</span>
+        </div>
+        <div class="trow" data-rev>
+          <span class="tname">Room codes</span>
+          <span class="tdesc">A–Z a–z 0–9, dash and underscore</span>
+          <span class="tfig u-disp">32 ch</span>
+        </div>
+        <div class="trow" data-rev>
+          <span class="tname">Ops in flight</span>
+          <span class="tdesc">one per client, pipelined on the ack</span>
+          <span class="tfig u-disp">1</span>
+        </div>
+        <div class="trow" data-rev>
+          <span class="tname">Version ledger</span>
+          <span class="tdesc">every applied op bumps the count</span>
+          <span class="tfig u-disp">+1</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== BAND — FAQ ===== -->
+    <section class="band band-faq" id="faq">
+      <p class="furn-s kicker" data-rev>Questions</p>
+      <h2 class="band-title u-disp" data-split>Asked at the door.</h2>
+
+      <div class="faq-list">
+        <details data-rev>
+          <summary class="u-disp">How do I invite someone?<span class="plus" aria-hidden="true"></span></summary>
+          <p class="ans">Copy the room link from the studio header. Anyone who opens it lands in the same room, on the same document, in the same second — presence chips show every cursor the moment they arrive.</p>
+        </details>
+        <details data-rev>
+          <summary class="u-disp">What if we type at the same caret?<span class="plus" aria-hidden="true"></span></summary>
+          <p class="ans">The server transforms each operation against everything that landed before it. Both edits survive, repositioned so the document stays exactly what both authors meant — no locks, no last-write-wins roulette.</p>
+        </details>
+        <details data-rev>
+          <summary class="u-disp">Is my code stored anywhere?<span class="plus" aria-hidden="true"></span></summary>
+          <p class="ans">Rooms live in the server's memory while the process runs. Nothing is written to disk, no accounts are kept, and a restart starts every room fresh at an empty page.</p>
+        </details>
+        <details data-rev>
+          <summary class="u-disp">Which languages are highlighted?<span class="plus" aria-hidden="true"></span></summary>
+          <p class="ans">Java tokens today — keywords, strings, comments and numbers. The highlighter is a single regex table in the studio, built to be extended one line at a time.</p>
+        </details>
+        <details data-rev>
+          <summary class="u-disp">What happens if the server is down?<span class="plus" aria-hidden="true"></span></summary>
+          <p class="ans">The studio drops into solo mode: you keep typing against a local page, and your whole buffer is pushed as one operation the moment the socket comes back.</p>
+        </details>
+      </div>
+    </section>
+  </main>
+
+  <!-- ===== FOOTER ===== -->
+  <footer class="footer">
+    <span class="mark">Code-<span class="ember">Sync</span></span>
+    <p class="fnote">A hot shop for shared code. Keep it molten.</p>
+    <div class="right">
+      <a class="furn-s" href="./">Intro</a>
+      <a class="furn-s" href="login.html">Login</a>
+      <a class="furn-s" href="studio.html">Studio</a>
     </div>
+  </footer>
 
-    <footer>
-      <span id="pos">Ln 1, Col 1</span>
-      <span id="count"></span>
-      <span id="conn" class="connecting">connecting</span>
-    </footer>
-  </div>
-
-  <script src="app.js"></script>
+  <script src="assets/landing.js"></script>
 </body>
 </html>

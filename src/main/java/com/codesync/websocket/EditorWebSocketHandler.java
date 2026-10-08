@@ -33,7 +33,7 @@ public class EditorWebSocketHandler extends TextWebSocketHandler {
 
     private static final Logger log = LoggerFactory.getLogger(EditorWebSocketHandler.class);
     private static final String[] COLORS =
-            {"#22D3EE", "#8B5CF6", "#F78C6C", "#A5E075", "#FFCB6B", "#FF5370"};
+            {"#E44B3C", "#E9EDE6", "#A9B5B2", "#DFA083", "#C9A227", "#8FA39D"};
 
     private static final class Client {
         final WebSocketSession session;
