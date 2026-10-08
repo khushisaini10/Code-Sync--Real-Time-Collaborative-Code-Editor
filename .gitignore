@@ -32,6 +32,19 @@ target/
 .project
 .factorypath
 
-# IntelliJ
+# Maven build output
+target/
+
+# Eclipse / IntelliJ
+.settings/
+.classpath
+.project
+.factorypath
 .idea/
 *.iml
+
+# Secrets - never commit these
+*adminsdk*.json
+serviceAccountKey.json
+.env
+application-local.properties
