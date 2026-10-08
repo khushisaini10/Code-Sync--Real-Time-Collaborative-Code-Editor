@@ -1,0 +1,752 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Code-Sync — Test Users</title>
+
+  <style>
+    :root {
+      --bg: #0F1424;
+      --panel: #0B1020;
+      --line: #1B2342;
+      --fg: #E6EAF5;
+      --dim: #5C6690;
+      --cyan: #22D3EE;
+      --violet: #8B5CF6;
+      --green: #A5E075;
+      --red: #FF5370;
+      --yellow: #FFCB6B;
+      --mono: "JetBrains Mono", "Cascadia Code", Consolas, "Courier New", monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      min-height: 100%;
+      margin: 0;
+      background: var(--bg);
+      color: var(--fg);
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    }
+
+    body {
+      background:
+        radial-gradient(circle at 20% 10%, rgba(34, 211, 238, .08), transparent 30%),
+        radial-gradient(circle at 80% 90%, rgba(139, 92, 246, .08), transparent 30%),
+        var(--bg);
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      background: var(--panel);
+      border-bottom: 1px solid var(--line);
+      min-height: 56px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 18px;
+      font-weight: 800;
+    }
+
+    .logo {
+      width: 30px;
+      height: 30px;
+      border-radius: 9px;
+      background: linear-gradient(135deg, var(--cyan), var(--violet));
+      display: grid;
+      place-items: center;
+      color: white;
+      font-weight: 900;
+    }
+
+    .brand b {
+      color: var(--cyan);
+    }
+
+    .spacer {
+      flex: 1;
+    }
+
+    .status {
+      color: var(--dim);
+      font-size: 12px;
+    }
+
+    main {
+      width: min(900px, calc(100% - 30px));
+      margin: 35px auto;
+    }
+
+    .page-title {
+      margin-bottom: 22px;
+    }
+
+    .page-title h1 {
+      margin: 0;
+      font-size: 28px;
+    }
+
+    .page-title p {
+      margin: 7px 0 0;
+      color: var(--dim);
+      font-size: 14px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 340px 1fr;
+      gap: 18px;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 20px;
+    }
+
+    .panel h2 {
+      margin: 0 0 16px;
+      font-size: 16px;
+    }
+
+    .field {
+      margin-bottom: 13px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 6px;
+      color: #96A0BE;
+      font-size: 12px;
+    }
+
+    input {
+      width: 100%;
+      padding: 10px 11px;
+      border: 1px solid #232C52;
+      border-radius: 8px;
+      background: #141A33;
+      color: var(--fg);
+      font-size: 13px;
+      outline: none;
+    }
+
+    input:focus {
+      border-color: var(--cyan);
+    }
+
+    button {
+      padding: 9px 13px;
+      border: 0;
+      border-radius: 8px;
+      background: linear-gradient(135deg, var(--cyan), var(--violet));
+      color: #fff;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    button:hover {
+      filter: brightness(1.08);
+    }
+
+    button.ghost {
+      background: #141A33;
+      border: 1px solid #232C52;
+    }
+
+    button.danger {
+      background: rgba(255, 83, 112, .12);
+      border: 1px solid rgba(255, 83, 112, .4);
+      color: var(--red);
+    }
+
+    .user-list {
+      display: flex;
+      flex-direction: column;
+      gap: 9px;
+      max-height: 500px;
+      overflow-y: auto;
+    }
+
+    .user-card {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 11px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #10162A;
+    }
+
+    .avatar {
+      width: 38px;
+      height: 38px;
+      flex: none;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--cyan), var(--violet));
+      color: white;
+      font-weight: 800;
+    }
+
+    .user-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .user-name {
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .user-email {
+      margin-top: 3px;
+      color: var(--dim);
+      font-size: 11px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .selected {
+      border-color: var(--cyan);
+      box-shadow: 0 0 0 1px rgba(34, 211, 238, .15);
+    }
+
+    .selected-badge {
+      color: var(--cyan);
+      font-size: 10px;
+      font-weight: 700;
+    }
+
+    .empty {
+      padding: 30px;
+      text-align: center;
+      color: var(--dim);
+      border: 1px dashed var(--line);
+      border-radius: 10px;
+    }
+
+    .current {
+      margin-top: 18px;
+      padding: 12px;
+      border: 1px solid rgba(34, 211, 238, .25);
+      border-radius: 10px;
+      background: rgba(34, 211, 238, .05);
+      font-size: 12px;
+    }
+
+    .current strong {
+      color: var(--cyan);
+    }
+
+    .message {
+      min-height: 18px;
+      margin-top: 12px;
+      font-size: 12px;
+    }
+
+    .success {
+      color: var(--green);
+    }
+
+    .error {
+      color: var(--red);
+    }
+
+    @media (max-width: 720px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+<header>
+  <div class="brand">
+    <div class="logo">&lt;/&gt;</div>
+    <span>Code-<b>Sync</b></span>
+  </div>
+
+  <div class="spacer"></div>
+
+  <span class="status" id="firebaseStatus">
+    Connecting...
+  </span>
+</header>
+
+<main>
+
+  <div class="page-title">
+    <h1>Test Users</h1>
+    <p>Temporary users for testing the CodeSync room module.</p>
+  </div>
+
+  <div class="grid">
+
+    <!-- CREATE USER -->
+    <section class="panel">
+
+      <h2>Create Test User</h2>
+
+      <div class="field">
+        <label for="name">Name</label>
+        <input
+          id="name"
+          type="text"
+          maxlength="30"
+          placeholder="Your name"
+          autocomplete="off"
+        >
+      </div>
+
+      <div class="field">
+        <label for="email">Email</label>
+        <input
+          id="email"
+          type="email"
+          placeholder="you@example.com"
+          autocomplete="off"
+        >
+      </div>
+
+      <div class="field">
+        <label for="phone">Mobile Number</label>
+        <input
+          id="phone"
+          type="tel"
+          maxlength="15"
+          placeholder="9876543210"
+          autocomplete="off"
+        >
+      </div>
+
+      <button id="createUser">
+        Create User
+      </button>
+
+      <div id="message" class="message"></div>
+
+      <div id="currentUserBox" class="current">
+        No user selected.
+      </div>
+
+      <br>
+
+      <button id="openRoom" class="ghost">
+        Open Room Module →
+      </button>
+
+    </section>
+
+
+    <!-- USER LIST -->
+    <section class="panel">
+
+      <h2>Available Test Users</h2>
+
+      <div id="userList" class="user-list">
+        <div class="empty">
+          Loading users...
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+</main>
+
+
+<script type="module">
+
+  import {
+    initializeApp
+  } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
+
+  import {
+    getFirestore,
+    collection,
+    doc,
+    setDoc,
+    onSnapshot,
+    query,
+    orderBy,
+    serverTimestamp
+  } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
+
+
+  // =========================================================
+  // FIREBASE CONFIG
+  // =========================================================
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyAlCzg3E ZKjQ_14HP8QTS6HNZ7zHZf3A6I".replace(" ", ""),
+    authDomain: "codesync-3f1c0.firebaseapp.com",
+    projectId: "codesync-3f1c0",
+    storageBucket: "codesync-3f1c0.firebasestorage.app",
+    messagingSenderId: "759410162201",
+    appId: "1:759410162201:web:0225888fef8b5b96578888"
+};
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+
+  // =========================================================
+  // ELEMENTS
+  // =========================================================
+
+  const nameInput = document.getElementById("name");
+  const emailInput = document.getElementById("email");
+  const phoneInput = document.getElementById("phone");
+
+  const createUserBtn = document.getElementById("createUser");
+  const openRoomBtn = document.getElementById("openRoom");
+
+  const userList = document.getElementById("userList");
+  const message = document.getElementById("message");
+
+  const currentUserBox = document.getElementById("currentUserBox");
+  const firebaseStatus = document.getElementById("firebaseStatus");
+
+
+  // =========================================================
+  // CURRENT TEST USER
+  // =========================================================
+
+  function getCurrentUser() {
+    const data = localStorage.getItem("codesyncTestUser");
+
+    if (!data) {
+      return null;
+    }
+
+    try {
+      return JSON.parse(data);
+    } catch {
+      localStorage.removeItem("codesyncTestUser");
+      return null;
+    }
+  }
+
+
+  function selectUser(user) {
+
+    localStorage.setItem(
+      "codesyncTestUser",
+      JSON.stringify(user)
+    );
+
+    showCurrentUser();
+
+    message.textContent =
+      `${user.name} selected. You can now open the room module.`;
+
+    message.className = "message success";
+  }
+
+
+  function showCurrentUser() {
+
+    const user = getCurrentUser();
+
+    if (!user) {
+
+      currentUserBox.innerHTML =
+        "No user selected.";
+
+      return;
+    }
+
+    currentUserBox.innerHTML = `
+      Current user:
+      <strong>${escapeHtml(user.name)}</strong>
+      <br>
+      <span style="color:#5C6690;">
+        ${escapeHtml(user.email)}
+      </span>
+    `;
+  }
+
+
+  // =========================================================
+  // CREATE USER
+  // =========================================================
+
+  createUserBtn.addEventListener("click", async () => {
+
+    const name = nameInput.value.trim();
+    const email = emailInput.value.trim();
+    const phone = phoneInput.value.trim();
+
+    if (!name) {
+      showError("Please enter a name.");
+      return;
+    }
+
+    if (!email) {
+      showError("Please enter an email.");
+      return;
+    }
+
+    if (!phone) {
+      showError("Please enter a mobile number.");
+      return;
+    }
+
+
+    createUserBtn.disabled = true;
+    createUserBtn.textContent = "Creating...";
+
+
+    try {
+
+      // Firestore auto-generated document ID
+      const userRef = doc(collection(db, "testUsers"));
+
+      const user = {
+        uid: userRef.id,
+        name: name,
+        email: email,
+        phone: phone,
+        createdAt: serverTimestamp()
+      };
+
+
+      await setDoc(userRef, user);
+
+
+      // Select this user automatically
+      const localUser = {
+        uid: userRef.id,
+        name: name,
+        email: email,
+        phone: phone
+      };
+
+      localStorage.setItem(
+        "codesyncTestUser",
+        JSON.stringify(localUser)
+      );
+
+
+      nameInput.value = "";
+      emailInput.value = "";
+      phoneInput.value = "";
+
+      showCurrentUser();
+
+      message.textContent =
+        `${name} created and selected successfully.`;
+
+      message.className = "message success";
+
+   } catch (error) {
+
+    console.error("FIREBASE ERROR:", error);h
+
+    showMessage(
+        error.code + " : " + error.message,
+        "error"
+    );
+    } finally {
+
+      createUserBtn.disabled = false;
+      createUserBtn.textContent = "Create User";
+    }
+
+  });
+
+
+  // =========================================================
+  // OPEN ROOM
+  // =========================================================
+
+  openRoomBtn.addEventListener("click", () => {
+
+    const user = getCurrentUser();
+
+    if (!user) {
+      showError("First create/select a test user.");
+      return;
+    }
+
+    window.location.href = "rooms.html";
+  });
+
+
+  // =========================================================
+  // REAL-TIME USER LIST
+  // =========================================================
+
+  const usersQuery = query(
+    collection(db, "testUsers"),
+    orderBy("createdAt", "desc")
+  );
+
+
+  onSnapshot(
+    usersQuery,
+    (snapshot) => {
+
+      firebaseStatus.textContent = "Firebase connected";
+      firebaseStatus.style.color = "#22D3EE";
+
+      userList.innerHTML = "";
+
+      if (snapshot.empty) {
+
+        userList.innerHTML = `
+          <div class="empty">
+            No test users yet.
+          </div>
+        `;
+
+        return;
+      }
+
+
+      const current = getCurrentUser();
+
+
+      snapshot.forEach((docSnap) => {
+
+        const user = docSnap.data();
+
+        const card = document.createElement("div");
+
+        card.className = "user-card";
+
+        if (
+          current &&
+          current.uid === user.uid
+        ) {
+          card.classList.add("selected");
+        }
+
+
+        const firstLetter =
+          user.name
+            ? user.name.charAt(0).toUpperCase()
+            : "?";
+
+
+        card.innerHTML = `
+
+          <div class="avatar">
+            ${escapeHtml(firstLetter)}
+          </div>
+
+          <div class="user-info">
+
+            <div class="user-name">
+              ${escapeHtml(user.name)}
+            </div>
+
+            <div class="user-email">
+              ${escapeHtml(user.email)}
+            </div>
+
+          </div>
+
+          <div>
+            ${
+              current &&
+              current.uid === user.uid
+                ? `<div class="selected-badge">SELECTED</div>`
+                : `<button class="ghost select-btn">
+                     Select
+                   </button>`
+            }
+          </div>
+        `;
+
+
+        if (
+          !current ||
+          current.uid !== user.uid
+        ) {
+
+          const selectBtn =
+            card.querySelector(".select-btn");
+
+          selectBtn.addEventListener(
+            "click",
+            () => selectUser({
+              uid: user.uid,
+              name: user.name,
+              email: user.email,
+              phone: user.phone || ""
+            })
+          );
+
+        }
+
+
+        userList.appendChild(card);
+
+      });
+
+    },
+
+    (error) => {
+
+      console.error(error);
+
+      firebaseStatus.textContent =
+        "Firebase error";
+
+      firebaseStatus.style.color =
+        "#FF5370";
+
+      userList.innerHTML = `
+        <div class="empty error">
+          ${escapeHtml(error.message)}
+        </div>
+      `;
+    }
+  );
+
+
+  // =========================================================
+  // HELPERS
+  // =========================================================
+
+  function showError(text) {
+
+    message.textContent = text;
+    message.className = "message error";
+  }
+
+
+  function escapeHtml(value) {
+
+    return String(value)
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#039;");
+  }
+
+
+  showCurrentUser();
+
+</script>
+
+</body>
+</html>
