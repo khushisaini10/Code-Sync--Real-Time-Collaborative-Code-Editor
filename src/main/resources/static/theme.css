@@ -1,0 +1,59 @@
+/* Code-Sync theme: Neo-Brutalist. Shared by every page (load this file first).
+   Rules: 2px black borders, hard shadows with ZERO blur, no gradients, button corners <= 12px. */
+@import url("https://api.fontshare.com/v2/css?f[]=cabinet-grotesk@400,500,700,800&f[]=satoshi@400,500,700&display=swap");
+
+:root {
+  --yellow: #ffe17c;
+  --charcoal: #171e19;
+  --sage: #b7c6c2;
+  --white: #ffffff;
+  --black: #000000;
+  --gray: #272727;
+  --star: #ffbc2e;
+  --danger: #c0182b;
+  --ok: #1a7f37;
+
+  --border: 2px solid var(--black);
+  --shadow: 4px 4px 0 0 var(--black);
+  --shadow-lg: 8px 8px 0 0 var(--black);
+
+  --font-head: "Cabinet Grotesk", system-ui, "Segoe UI", sans-serif;
+  --font-body: "Satoshi", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --mono: "JetBrains Mono", "Cascadia Code", Consolas, "Courier New", monospace;
+}
+
+* { box-sizing: border-box; }
+html, body { min-height: 100%; margin: 0; }
+body { font-family: var(--font-body); font-weight: 500; color: var(--black); }
+h1, h2, h3, .brand { font-family: var(--font-head); font-weight: 800; letter-spacing: -0.03em; }
+.hidden { display: none !important; }
+
+/* 32px dot pattern at 10% opacity (used on yellow backgrounds) */
+.dots {
+  background-color: var(--yellow);
+  background-image: radial-gradient(rgba(0, 0, 0, .1) 2px, transparent 2px);
+  background-size: 32px 32px;
+}
+
+/* Push button: hover/press moves it into its own shadow */
+.btn, button.primary {
+  display: inline-block;
+  padding: 10px 18px;
+  border: var(--border);
+  border-radius: 10px;
+  background: var(--white);
+  color: var(--black);
+  font: 700 14px/1.2 var(--font-body);
+  text-decoration: none;
+  cursor: pointer;
+  box-shadow: var(--shadow);
+  transition: transform .2s cubic-bezier(.175, .885, .32, 1.275), box-shadow .2s cubic-bezier(.175, .885, .32, 1.275);
+}
+.btn:hover, button.primary:hover, .btn:focus-visible, button.primary:focus-visible {
+  transform: translate(4px, 4px);
+  box-shadow: 0 0 0 0 var(--black);
+}
+.btn.primary-btn, button.primary { background: var(--black); color: var(--white); }
+.btn:disabled, button.primary:disabled { opacity: .55; cursor: not-allowed; transform: none; box-shadow: var(--shadow); }
+
+input, select, textarea { font-family: var(--font-body); }
