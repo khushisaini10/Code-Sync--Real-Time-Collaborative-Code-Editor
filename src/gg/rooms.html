@@ -1,1967 +1,1338 @@
+<!-- This is created by gaurav -->
+
 <!doctype html>
+
 <html lang="en">
 
 <head>
 
-  <meta charset="utf-8">
-
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1"
-  >
-
-  <title>Code-Sync — Rooms</title>
-
-  <style>
-
-    :root {
-      --bg: #0F1424;
-      --panel: #0B1020;
-      --line: #1B2342;
-      --fg: #E6EAF5;
-      --dim: #5C6690;
-      --cyan: #22D3EE;
-      --violet: #8B5CF6;
-      --green: #A5E075;
-      --red: #FF5370;
-      --yellow: #FFCB6B;
-      --mono: "JetBrains Mono", "Cascadia Code", Consolas, "Courier New", monospace;
-    }
-
-
-    * {
-      box-sizing: border-box;
-    }
-
-
-    html,
-    body {
-      min-height: 100%;
-      margin: 0;
-      background: var(--bg);
-      color: var(--fg);
-      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-    }
-
-
-    body {
-      background:
-        radial-gradient(
-          circle at 20% 10%,
-          rgba(34, 211, 238, .08),
-          transparent 30%
-        ),
-        radial-gradient(
-          circle at 80% 90%,
-          rgba(139, 92, 246, .08),
-          transparent 30%
-        ),
-        var(--bg);
-    }
-
-
-    header {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      gap: 10px;
-      padding: 8px 14px;
-      background: var(--panel);
-      border-bottom: 1px solid var(--line);
-    }
-
-
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-size: 18px;
-      font-weight: 800;
-    }
-
-
-    .brand-logo {
-      width: 28px;
-      height: 28px;
-      border-radius: 8px;
-      background:
-        linear-gradient(
-          135deg,
-          var(--cyan),
-          var(--violet)
-        );
-      display: grid;
-      place-items: center;
-      font-size: 10px;
-      font-weight: 900;
-      color: white;
-    }
-
-
-    .brand b {
-      color: var(--cyan);
-    }
-
-
-    .spacer {
-      flex: 1;
-    }
-
-
-    .current-user {
-      color: var(--dim);
-      font-size: 12px;
-    }
-
-
-    .current-user strong {
-      color: var(--cyan);
-    }
-
-
-    button {
-      padding: 7px 12px;
-      border: 0;
-      border-radius: 8px;
-      background:
-        linear-gradient(
-          135deg,
-          var(--cyan),
-          var(--violet)
-        );
-      color: #fff;
-      font-size: 13px;
-      font-weight: 600;
-      cursor: pointer;
-    }
-
-
-    button.ghost {
-      background: #141A33;
-      border: 1px solid #232C52;
-    }
-
-
-    button.danger {
-      background: rgba(255, 83, 112, .1);
-      border: 1px solid rgba(255, 83, 112, .35);
-      color: var(--red);
-    }
-
-
-    button:disabled {
-      opacity: .5;
-      cursor: not-allowed;
-    }
-
-
-    main {
-      width: min(1000px, calc(100% - 30px));
-      margin: 30px auto;
-    }
-
-
-    .room-setup {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 18px;
-    }
-
-
-    .panel {
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: 14px;
-      padding: 20px;
-    }
-
-
-    .panel h2 {
-      margin: 0 0 8px;
-      font-size: 17px;
-    }
-
-
-    .panel p {
-      margin: 0 0 18px;
-      color: var(--dim);
-      font-size: 13px;
-      line-height: 1.5;
-    }
-
-
-    input {
-      width: 100%;
-      padding: 9px 11px;
-      border: 1px solid #232C52;
-      border-radius: 8px;
-      background: #141A33;
-      color: var(--fg);
-      font-size: 13px;
-      outline: none;
-    }
-
-
-    input:focus {
-      border-color: var(--cyan);
-    }
-
-
-    .button-row {
-      display: flex;
-      gap: 8px;
-      margin-top: 10px;
-      flex-wrap: wrap;
-    }
-
-
-    .message {
-      min-height: 18px;
-      margin-top: 12px;
-      font-size: 12px;
-    }
-
-
-    .success {
-      color: var(--green);
-    }
-
-
-    .error {
-      color: var(--red);
-    }
-
-
-    .room-view {
-      margin-top: 18px;
-    }
-
-
-    .room-header {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      flex-wrap: wrap;
-      padding-bottom: 15px;
-      margin-bottom: 15px;
-      border-bottom: 1px solid var(--line);
-    }
-
-
-    .room-id {
-      font-family: var(--mono);
-      font-size: 20px;
-      font-weight: 800;
-      color: var(--cyan);
-      letter-spacing: 1px;
-    }
-
-
-    .admin-label {
-      padding: 3px 8px;
-      border-radius: 999px;
-      border: 1px solid rgba(139, 92, 246, .5);
-      color: #B69CFF;
-      font-size: 10px;
-      font-weight: 800;
-      letter-spacing: .5px;
-    }
-
-
-    .participants {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 10px;
-    }
-
-
-    .participant {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 11px;
-      background: #10162A;
-      border: 1px solid var(--line);
-      border-radius: 10px;
-    }
-
-
-    .avatar {
-      width: 38px;
-      height: 38px;
-      flex: none;
-      display: grid;
-      place-items: center;
-      border-radius: 50%;
-      background:
-        linear-gradient(
-          135deg,
-          var(--cyan),
-          var(--violet)
-        );
-      color: white;
-      font-weight: 800;
-    }
-
-
-    .participant-info {
-      flex: 1;
-      min-width: 0;
-    }
-
-
-    .participant-name {
-      font-size: 14px;
-      font-weight: 700;
-    }
-
-
-    .participant-email {
-      margin-top: 3px;
-      color: var(--dim);
-      font-size: 11px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-
-    .participant-actions {
-      display: flex;
-      align-items: center;
-      gap: 5px;
-    }
-
-
-    .details {
-      padding: 4px 7px;
-      border-radius: 6px;
-      border: 1px solid #232C52;
-      background: #141A33;
-      color: var(--dim);
-      font-size: 10px;
-      cursor: pointer;
-    }
-
-
-    .details-box {
-      margin-top: 7px;
-      padding: 7px;
-      background: #0B1020;
-      border-radius: 7px;
-      color: var(--dim);
-      font-size: 10px;
-      line-height: 1.5;
-    }
-
-
-    .empty {
-      padding: 30px;
-      border: 1px dashed var(--line);
-      border-radius: 10px;
-      text-align: center;
-      color: var(--dim);
-    }
-
-
-    .hidden {
-      display: none !important;
-    }
-
-
-    .invite-box {
-      margin-top: 15px;
-      padding: 12px;
-      border: 1px solid rgba(34, 211, 238, .2);
-      border-radius: 10px;
-      background: rgba(34, 211, 238, .04);
-    }
-
-
-    .invite-label {
-      margin-bottom: 6px;
-      color: var(--dim);
-      font-size: 11px;
-    }
-
-
-    .invite-url {
-      width: 100%;
-      padding: 8px;
-      background: #0B1020;
-      border: 1px solid var(--line);
-      border-radius: 7px;
-      color: var(--cyan);
-      font-family: var(--mono);
-      font-size: 11px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-
-    footer {
-      display: flex;
-      justify-content: space-between;
-      gap: 12px;
-      padding: 5px 14px;
-      background: var(--panel);
-      border-top: 1px solid var(--line);
-      color: var(--dim);
-      font-size: 12px;
-    }
-
-
-    #connection::before {
-      content: "● ";
-    }
-
-
-    #connection.live {
-      color: var(--cyan);
-    }
-
-
-    @media (max-width: 720px) {
-
-      .room-setup {
-        grid-template-columns: 1fr;
-      }
-
-      .participants {
-        grid-template-columns: 1fr;
-      }
-
-    }
-
-  </style>
+<meta charset="utf-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>Code-Sync — Rooms</title>
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap');
+:root{--yellow:#ffe17c;--yellow-deep:#f6cf35;--sage:#b7c6c2;--cream:#fffdf4;--ink:#080908;--muted:#5f625d;--line:#111310;--red:#d92d3a;--green:#167443;--mono:'JetBrains Mono','Cascadia Code',Consolas,monospace}
+*{box-sizing:border-box}html{min-height:100%;background:var(--yellow)}body{margin:0;min-height:100vh;color:var(--ink);font-family:'DM Sans',system-ui,sans-serif;background-color:var(--yellow);background-image:radial-gradient(#151710 0.8px,transparent .8px);background-size:19px 19px;display:flex;flex-direction:column}
+button,input,select{font:inherit}button{min-height:40px;padding:10px 16px;border:2px solid var(--ink);border-radius:7px;background:var(--yellow);color:var(--ink);font-size:13px;font-weight:800;cursor:pointer;box-shadow:3px 3px 0 var(--ink);transition:transform .12s,box-shadow .12s}button:hover:not(:disabled){transform:translate(2px,2px);box-shadow:1px 1px 0 var(--ink)}button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid #5b8fdb;outline-offset:2px}button:disabled{opacity:.55;cursor:not-allowed}.ghost{background:#fffdf4!important;color:var(--ink)!important}.danger{background:var(--red)!important;color:#fff!important}.hidden{display:none!important}
+header,footer{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:12px clamp(15px,3vw,30px);background:var(--yellow);border:2px solid var(--ink);box-shadow:0 4px 0 var(--ink)}header{min-height:66px;margin:8px 8px 0;border-radius:10px}.brand{display:flex;align-items:center;gap:10px;font-family:'Space Grotesk',sans-serif;font-size:23px;font-weight:800;letter-spacing:-1px}.brand:before{content:'</>';display:grid;place-items:center;width:37px;height:37px;border:2px solid var(--ink);border-radius:9px;background:var(--yellow);font-size:18px;letter-spacing:-2px}.brand b{color:var(--yellow);-webkit-text-stroke:1.3px var(--ink);text-shadow:1px 1px 0 var(--ink)}.spacer{flex:1}.current-user{font-size:13px;font-weight:700;color:var(--ink)}header #backUsers{min-height:34px;padding:6px 10px;font-size:12px}
+main{width:min(1120px,calc(100% - 32px));margin:28px auto 36px;flex:1}.room-setup{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:22px;align-items:stretch}.panel{min-width:0;padding:clamp(20px,3vw,30px);background:var(--cream);border:2px solid var(--ink);border-radius:9px;box-shadow:6px 6px 0 var(--ink)}.panel h2{display:table;margin:0 0 8px;font-family:'Space Grotesk',sans-serif;font-size:25px;font-weight:800;letter-spacing:-.7px;text-decoration:underline;text-decoration-color:var(--yellow-deep);text-decoration-thickness:5px;text-underline-offset:5px}.panel p{margin:0 0 22px;color:#50524d;font-size:13px;line-height:1.6}.field-label{display:block;margin:16px 0 7px;color:var(--ink);font-size:12px;font-weight:800}input,select{display:block;width:100%;min-height:43px;padding:10px 12px;border:1.5px solid #85877f;border-radius:6px;background:#fffef9;color:var(--ink);font-size:13px;outline:none}input::placeholder{color:#858780}input:focus,select:focus{border:2px solid var(--ink);box-shadow:3px 3px 0 var(--yellow)}select option{background:#fffef9;color:var(--ink)}.button-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:20px}.button-row button{min-width:140px;background:#090a08;color:#fff;box-shadow:3px 3px 0 var(--yellow-deep)}.button-row button:hover:not(:disabled){box-shadow:1px 1px 0 var(--yellow-deep)}.message{min-height:18px;margin-top:12px;font-size:12px;line-height:1.5;overflow-wrap:anywhere}.success{color:var(--green)}.error{color:var(--red)}
+.room-view{margin-top:26px}.room-header{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding-bottom:18px;margin-bottom:17px;border-bottom:2px solid var(--ink)}.room-id{color:var(--ink);font:800 22px var(--mono);letter-spacing:1px;overflow-wrap:anywhere}.room-name-badge,.admin-label{display:inline-flex;align-items:center;gap:5px;max-width:300px;margin-top:7px;padding:6px 10px;border:2px solid var(--ink);border-radius:6px;font-size:11px;font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.room-name-badge{background:var(--yellow)}.admin-label{background:var(--sage)}.room-info-row{display:flex;gap:9px;flex-wrap:wrap;margin-top:14px}.info-chip{padding:9px 12px;border:2px solid var(--ink);border-radius:6px;background:var(--sage);color:#20221f;font-size:12px;box-shadow:2px 2px 0 var(--ink)}.info-chip strong{color:var(--ink);font-weight:800}.participants{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.participant{display:flex;align-items:center;gap:11px;min-width:0;padding:13px;border:2px solid var(--ink);border-radius:7px;background:#fffef9;box-shadow:3px 3px 0 var(--ink);transition:transform .12s}.participant:hover{transform:translate(-1px,-1px)}.avatar{display:grid;place-items:center;width:42px;height:42px;flex:0 0 42px;border:2px solid var(--ink);border-radius:9px;background:var(--yellow);color:var(--ink);font-weight:900}.participant-info{flex:1;min-width:0}.participant-name{font-size:13px;font-weight:800;overflow-wrap:anywhere}.participant-role{margin-top:4px;color:var(--muted);font-size:11px}.participant-actions{display:flex;align-items:center;justify-content:flex-end;gap:6px;flex-wrap:wrap}.participant-actions button{min-height:30px;padding:5px 8px;font-size:10px}.details{background:var(--sage)!important;color:var(--ink)!important}.details-box{margin-top:8px;padding:10px;border:1.5px solid var(--ink);border-radius:6px;background:#fffef9;color:#383a35;font-size:11px;line-height:1.6;overflow-wrap:anywhere}.empty{grid-column:1/-1;padding:32px 18px;border:2px dashed var(--ink);border-radius:7px;background:#fffef9;color:var(--muted);text-align:center;font-size:13px}footer{justify-content:space-between;margin:0 8px 8px;border-radius:8px;color:var(--ink);font-size:11px;box-shadow:3px 3px 0 var(--ink)}#connection:before{content:'● ';color:var(--green)}#connection{color:var(--ink);font-weight:700}
+@media(max-width:720px){main{width:min(calc(100% - 22px),560px);margin:22px auto 28px}.room-setup,.participants{grid-template-columns:1fr}.room-header{align-items:flex-start}.room-header .spacer{flex-basis:100%;height:0}.room-header button{flex:1 1 auto}.participant{align-items:flex-start}.participant-actions{max-width:100%}}
+@media(max-width:420px){header{gap:9px}.brand{font-size:19px}.current-user{order:3;flex-basis:100%}header #backUsers{margin-left:auto}.panel{padding:17px}.room-id{font-size:18px}.info-chip{flex:1 1 100%}.participant{flex-wrap:wrap}.participant-actions{width:100%;justify-content:flex-start;padding-left:53px}footer{align-items:flex-start;flex-direction:column;gap:4px}}
+</style>
 
 </head>
 
-
 <body>
-
 
 <header>
 
-  <div class="brand">
-
-    <div class="brand-logo">
-      &lt;/&gt;
-    </div>
-
-    <span>
-      Code-<b>Sync</b>
-    </span>
-
-  </div>
-
+  <div class="brand">&lt;/&gt; Code-<b>Sync</b></div>
 
   <div class="spacer"></div>
 
+  <div id="currentUser" class="current-user">Loading user...</div>
 
-  <div id="currentUser" class="current-user">
-    Loading user...
-  </div>
-
-
-  <button
-    id="backUsers"
-    class="ghost"
-  >
-    Test Users
-  </button>
+  <button id="backUsers" class="ghost">Test Users</button>
 
 </header>
 
 
+
 <main>
 
-
-  <!-- =====================================================
-       ROOM CREATE / JOIN
-  ====================================================== -->
-
-  <div
-    id="setup"
-    class="room-setup"
-  >
-
-
-    <!-- CREATE -->
+  <div id="setup" class="room-setup">
 
     <section class="panel">
 
       <h2>Create Room</h2>
 
-      <p>
-        Create a new CodeSync room. You will automatically
-        become the room administrator.
-      </p>
+      <p>Enter a room name, choose the language and set a password.</p>
 
-      <button id="createRoom">
-        Create Room
-      </button>
+      <label class="field-label" for="roomNameInput">Room Name</label>
+
+      <input id="roomNameInput" maxlength="50" placeholder="e.g. Java Project Team">
+
+      <label class="field-label" for="languageSelect">Programming Language</label>
+
+      <select id="languageSelect">
+
+        <option value="">Select a language</option>
+
+        <option>Java</option><option>Python</option><option>C</option>
+
+        <option>C++</option><option>C#</option><option>JavaScript</option>
+
+        <option>TypeScript</option><option>HTML/CSS</option><option>PHP</option>
+
+        <option>Kotlin</option><option>Dart</option><option>SQL</option>
+
+      </select>
+
+      <label class="field-label" for="createPassword">Room Password</label>
+
+      <input id="createPassword" type="password" minlength="4" maxlength="64" autocomplete="new-password" placeholder="Set room password">
+
+      <div class="button-row"><button id="createRoom">Create Room</button></div>
+
+      <div id="setupMessage" class="message"></div>
 
     </section>
 
 
-    <!-- JOIN -->
 
     <section class="panel">
 
       <h2>Join Room</h2>
 
-      <p>
-        Enter the CodeSync room ID shared by the room creator.
-      </p>
+      <p>Enter the room ID and password shared by the creator.</p>
 
-      <input
-        id="roomInput"
-        maxlength="7"
-        placeholder="CS12345"
-        autocomplete="off"
-      >
+      <label class="field-label" for="roomInput">Room ID</label>
 
-      <div class="button-row">
+      <input id="roomInput" maxlength="7" placeholder="CS12345" autocomplete="off" spellcheck="false">
 
-        <button id="joinRoom">
-          Join Room
-        </button>
+      <label class="field-label" for="joinPassword">Room Password</label>
 
-      </div>
+      <input id="joinPassword" type="password" maxlength="64" autocomplete="current-password" placeholder="Enter room password">
 
-      <div
-        id="setupMessage"
-        class="message"
-      ></div>
+      <div id="joinPreview" class="message"></div>
+
+      <div class="button-row"><button id="joinRoom">Join Room</button></div>
+
+      <div id="joinMessage" class="message"></div>
 
     </section>
 
   </div>
 
 
-  <!-- =====================================================
-       ROOM VIEW
-  ====================================================== -->
 
-  <section
-    id="roomView"
-    class="panel room-view hidden"
-  >
+  <section id="roomView" class="panel room-view hidden">
 
     <div class="room-header">
 
       <div>
 
-        <div
-          style="
-            color:#5C6690;
-            font-size:11px;
-            margin-bottom:3px;
-          "
-        >
-          ROOM
-        </div>
+        <div style="color:#5C6690;font-size:11px;margin-bottom:3px">ROOM</div>
 
-        <div
-          id="roomIdDisplay"
-          class="room-id"
-        ></div>
+        <div id="roomIdDisplay" class="room-id"></div>
+
+        <div id="roomNameDisplay" class="room-name-badge">Room Name: -</div>
 
       </div>
 
-
-      <div
-        id="adminBadge"
-        class="admin-label hidden"
-      >
-        ADMIN
-      </div>
-
+      <div id="adminBadge" class="admin-label hidden">ADMIN</div>
 
       <div class="spacer"></div>
 
+      <button id="copyInvite" class="ghost">Copy Invite Link</button>
 
-      <button
-        id="copyInvite"
-        class="ghost"
-      >
-        Copy Invite
-      </button>
+      <button id="leaveRoom" class="danger">Leave</button>
 
-
-      <button
-        id="leaveRoom"
-        class="danger"
-      >
-        Leave
-      </button>
+      <button id="deleteRoom" class="danger hidden">Delete Room</button>
 
     </div>
 
 
-    <!-- INVITE -->
 
-    <div class="invite-box">
+    <div class="room-info-row">
 
-      <div class="invite-label">
-        Invite link
-      </div>
+      <div class="info-chip">Language: <strong id="roomLanguageInfo">-</strong></div>
 
-      <div
-        id="inviteUrl"
-        class="invite-url"
-      ></div>
+      <div class="info-chip">Created by: <strong id="roomCreatorInfo">-</strong></div>
+
+      <div class="info-chip">Room: <strong id="roomNameInfo">-</strong></div>
 
     </div>
 
 
-    <div
-      style="
-        display:flex;
-        justify-content:space-between;
-        align-items:center;
-        margin-top:20px;
-        margin-bottom:10px;
-      "
-    >
 
-      <h2
-        style="
-          margin:0;
-          font-size:16px;
-        "
-      >
-        Participants
-      </h2>
 
-      <span
-        id="participantCount"
-        style="
-          color:#5C6690;
-          font-size:11px;
-        "
-      >
-        0 users
-      </span>
+
+
+
+    <div style="display:flex;justify-content:space-between;align-items:center;margin:20px 0 10px">
+
+      <h2 style="margin:0;font-size:16px">Participants</h2>
+
+      <span id="participantCount" style="color:#5C6690;font-size:11px">0 users</span>
 
     </div>
 
+    <div id="participants" class="participants">
 
-    <div
-      id="participants"
-      class="participants"
-    >
-
-      <div class="empty">
-        Waiting for participants...
-      </div>
+      <div class="empty">Waiting for participants...</div>
 
     </div>
 
   </section>
 
-
-  <div
-    id="globalMessage"
-    class="message"
-  ></div>
-
+  <div id="globalMessage" class="message"></div>
 
 </main>
 
 
-<footer>
 
-  <span>
-    Code-Sync Room Module
-  </span>
 
-  <span
-    id="connection"
-    class="live"
-  >
-    Firebase connected
-  </span>
-
-</footer>
 
 
 <script type="module">
 
-  import {
-    initializeApp
-  } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
+
+import {
+
+  getFirestore, doc, getDoc, setDoc, deleteDoc,
+
+  collection, query, orderBy, onSnapshot,
+
+  serverTimestamp, getDocs, writeBatch
+
+} from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
 
 
-  import {
-    getFirestore,
-    doc,
-    getDoc,
-    setDoc,
-    deleteDoc,
-    collection,
-    query,
-    orderBy,
-    onSnapshot,
-    serverTimestamp
-  } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
+
+/* CodeSync Firebase project configuration */
+
+const firebaseConfig = {
+
+  apiKey: "AIzaSyAlCzgE3ZKjQ_14HP8QTS6HNZ7zHZf3A6I",
+
+  authDomain: "codesync-3f1c0.firebaseapp.com",
+
+  projectId: "codesync-3f1c0",
+
+  storageBucket: "codesync-3f1c0.firebasestorage.app",
+
+  messagingSenderId: "759410162201",
+
+  appId: "1:759410162201:web:0225888fef8b5b96578888"
+
+};
 
 
-  // =========================================================
-  // FIREBASE
-  // =========================================================
 
-  const firebaseConfig = {
+const app = initializeApp(firebaseConfig);
 
-    apiKey: "AIzaSyAlCzgE3ZKjQ_14HP8QTS6HNZ7zHZf3A6I",
+const db = getFirestore(app);
 
-    authDomain:
-      "codesync-3f1c0.firebaseapp.com",
-
-    projectId:
-      "codesync-3f1c0",
-
-    storageBucket:
-      "codesync-3f1c0.firebasestorage.app",
-
-    messagingSenderId:
-      "759410162201",
-
-    appId:
-      "1:759410162201:web:0225888fef8b5b96578888"
-  };
+const $ = id => document.getElementById(id);
 
 
-  const app = initializeApp(firebaseConfig);
 
-  const db = getFirestore(app);
+const setup = $("setup");
 
+const roomView = $("roomView");
 
-  // =========================================================
-  // ELEMENTS
-  // =========================================================
+const currentUserEl = $("currentUser");
 
-  const setup =
-    document.getElementById("setup");
+const roomNameInput = $("roomNameInput");
 
-  const roomView =
-    document.getElementById("roomView");
+const languageSelect = $("languageSelect");
 
-  const currentUserEl =
-    document.getElementById("currentUser");
+const createPassword = $("createPassword");
 
-  const roomInput =
-    document.getElementById("roomInput");
+const roomInput = $("roomInput");
 
-  const createRoomBtn =
-    document.getElementById("createRoom");
+const joinPassword = $("joinPassword");
 
-  const joinRoomBtn =
-    document.getElementById("joinRoom");
+const createRoomBtn = $("createRoom");
 
-  const roomIdDisplay =
-    document.getElementById("roomIdDisplay");
+const joinRoomBtn = $("joinRoom");
 
-  const adminBadge =
-    document.getElementById("adminBadge");
+const setupMessage = $("setupMessage");
 
-  const participantsEl =
-    document.getElementById("participants");
+const joinMessage = $("joinMessage");
 
-  const participantCount =
-    document.getElementById("participantCount");
+const globalMessage = $("globalMessage");
 
-  const inviteUrlEl =
-    document.getElementById("inviteUrl");
+const participantsEl = $("participants");
 
-  const copyInviteBtn =
-    document.getElementById("copyInvite");
+const participantCount = $("participantCount");
 
-  const leaveRoomBtn =
-    document.getElementById("leaveRoom");
+const leaveRoomBtn = $("leaveRoom");
 
-  const backUsersBtn =
-    document.getElementById("backUsers");
-
-  const setupMessage =
-    document.getElementById("setupMessage");
-
-  const globalMessage =
-    document.getElementById("globalMessage");
+const deleteRoomBtn = $("deleteRoom");
 
 
-  // =========================================================
-  // CURRENT TEST USER
-  // =========================================================
 
-  const storedUser =
-    localStorage.getItem("codesyncTestUser");
+function escapeHtml(value) {
+
+  return String(value ?? "")
+
+    .replaceAll("&", "&amp;")
+
+    .replaceAll("<", "&lt;")
+
+    .replaceAll(">", "&gt;")
+
+    .replaceAll('"', "&quot;")
+
+    .replaceAll("'", "&#039;");
+
+}
+
+function message(el, text, type = "") {
+
+  el.textContent = text;
+
+  el.className = "message " + type;
+
+}
+
+function globalError(text) { message(globalMessage, text, "error"); }
+
+function globalSuccess(text) {
+
+  message(globalMessage, text, "success");
+
+  setTimeout(() => {
+
+    if (globalMessage.textContent === text) message(globalMessage, "");
+
+  }, 2500);
+
+}
 
 
-  if (!storedUser) {
 
-    alert(
-      "Please create/select a test user first."
-    );
+/* Test user selected on users.html */
 
-    window.location.href = "users.html";
+const storedUser = localStorage.getItem("codesyncTestUser");
 
-    throw new Error(
-      "No test user selected."
-    );
+if (!storedUser) {
+
+  alert("Please select a test user first.");
+
+  location.href = "users.html";
+
+  throw new Error("No test user selected");
+
+}
+
+
+
+let currentUser;
+
+try {
+
+  currentUser = JSON.parse(storedUser);
+
+} catch {
+
+  localStorage.removeItem("codesyncTestUser");
+
+  location.href = "users.html";
+
+  throw new Error("Invalid test user");
+
+}
+
+if (!currentUser.uid || !currentUser.name) {
+
+  location.href = "users.html";
+
+  throw new Error("Incomplete test user");
+
+}
+
+currentUserEl.innerHTML = `User: <strong>${escapeHtml(currentUser.name)}</strong>`;
+
+
+
+/* Current-room state */
+
+let currentRoomId = null;
+
+let currentRoomName = null;
+
+let currentRoomLanguage = null;
+
+let currentRoomCreatorName = null;
+
+let roomCreatorUid = null;
+
+let unsubscribeParticipants = null;
+
+let unsubscribeOwnParticipant = null;
+
+let isLeavingRoom = false;
+
+let isDeletingRoom = false;
+
+let ownListenerGeneration = 0;
+
+
+
+/* Password digest with a fallback for local testing environments */
+
+async function passwordHash(password) {
+
+  const bytes = new TextEncoder().encode(password);
+
+  if (globalThis.crypto && globalThis.crypto.subtle && globalThis.crypto.subtle.digest) {
+
+    const digest = await globalThis.crypto.subtle.digest("SHA-256", bytes);
+
+    return Array.from(new Uint8Array(digest))
+
+      .map(b => b.toString(16).padStart(2, "0")).join("");
+
+  }
+
+  /* Compatibility fallback for local testing only; use HTTPS/localhost in production. */
+
+  let hash = 2166136261;
+
+  for (const byte of bytes) {
+
+    hash ^= byte;
+
+    hash = Math.imul(hash, 16777619);
+
+  }
+
+  return "fallback-" + (hash >>> 0).toString(16).padStart(8, "0");
+
+}
+
+
+
+function makeRoomId() {
+
+  return "CS" + Math.floor(10000 + Math.random() * 90000);
+
+}
+
+async function uniqueRoomId() {
+
+  for (let i = 0; i < 20; i++) {
+
+    const id = makeRoomId();
+
+    if (!(await getDoc(doc(db, "rooms", id))).exists()) return id;
+
+  }
+
+  throw new Error("Could not generate a unique room ID. Try again.");
+
+}
+
+
+
+/* Create room */
+
+createRoomBtn.addEventListener("click", async () => {
+
+  message(setupMessage, "");
+
+  const roomName = roomNameInput.value.trim();
+
+  const language = languageSelect.value;
+
+  const password = createPassword.value;
+
+
+
+  if (!roomName) return message(setupMessage, "Please enter a room name.", "error");
+
+  if (!language) return message(setupMessage, "Please select a programming language.", "error");
+
+  if (password.length < 4) return message(setupMessage, "Room password must be at least 4 characters.", "error");
+
+
+
+  createRoomBtn.disabled = true;
+
+  createRoomBtn.textContent = "Creating...";
+
+
+
+  try {
+
+    const roomId = await uniqueRoomId();
+
+    const roomRef = doc(db, "rooms", roomId);
+
+    const hash = await passwordHash(password);
+
+
+
+    await setDoc(roomRef, {
+
+      roomId,
+
+      roomName,
+
+      language,
+
+      passwordHash: hash,
+
+      creatorUid: currentUser.uid,
+
+      creatorName: currentUser.name,
+
+      createdAt: serverTimestamp(),
+
+      status: "active"
+
+    });
+
+
+
+    await setDoc(doc(db, "rooms", roomId, "participants", currentUser.uid), {
+
+      uid: currentUser.uid,
+
+      name: currentUser.name,
+
+      email: currentUser.email || "",
+
+      phone: currentUser.phone || "",
+
+      role: "admin",
+
+      joinedAt: serverTimestamp()
+
+    });
+
+
+
+    await setDoc(doc(collection(db, "rooms", roomId, "activity")), {
+
+      type: "ROOM_CREATED",
+
+      uid: currentUser.uid,
+
+      name: currentUser.name,
+
+      language,
+
+      createdAt: serverTimestamp()
+
+    });
+
+
+
+    createPassword.value = "";
+
+    await openRoom(roomId);
+
+  } catch (error) {
+
+    console.error("Create room error:", error);
+
+    message(setupMessage, "Could not create room: " + error.message, "error");
+
+  } finally {
+
+    createRoomBtn.disabled = false;
+
+    createRoomBtn.textContent = "Create Room";
+
+  }
+
+});
+
+
+
+/* Join room: both ID and password are required */
+
+joinRoomBtn.addEventListener("click", async () => {
+
+  message(joinMessage, "");
+
+  const roomId = roomInput.value.trim().toUpperCase();
+
+  const password = joinPassword.value;
+
+
+
+  if (!/^CS\d{5}$/.test(roomId)) {
+
+    return message(joinMessage, "Room ID must look like CS12345.", "error");
+
+  }
+
+  if (!password) {
+
+    return message(joinMessage, "Please enter the room password.", "error");
+
   }
 
 
-  const currentUser =
-    JSON.parse(storedUser);
+
+  joinRoomBtn.disabled = true;
+
+  joinRoomBtn.textContent = "Joining...";
 
 
-  currentUserEl.innerHTML = `
-    User:
-    <strong>
-      ${escapeHtml(currentUser.name)}
-    </strong>
-  `;
+
+  try {
+
+    const roomRef = doc(db, "rooms", roomId);
+
+    const roomSnap = await getDoc(roomRef);
+
+    if (!roomSnap.exists()) throw new Error("Room does not exist.");
 
 
-  // =========================================================
-  // CURRENT ROOM
-  // =========================================================
 
-  let currentRoomId = null;
+    const roomData = roomSnap.data();
 
-  let unsubscribeParticipants = null;
+    if (roomData.status && roomData.status !== "active") {
 
-  let unsubscribeOwnParticipant = null;
-
-
-  // =========================================================
-  // ROOM ID GENERATOR
-  // CS + 5 RANDOM DIGITS
-  // =========================================================
-
-  function generateRoomId() {
-
-    const numbers =
-      Math.floor(
-        10000 + Math.random() * 90000
-      );
-
-    return `CS${numbers}`;
-  }
-
-
-  // =========================================================
-  // CREATE UNIQUE ROOM ID
-  // =========================================================
-
-  async function generateUniqueRoomId() {
-
-    for (let i = 0; i < 20; i++) {
-
-      const roomId =
-        generateRoomId();
-
-      const roomRef =
-        doc(db, "rooms", roomId);
-
-      const roomSnap =
-        await getDoc(roomRef);
-
-
-      if (!roomSnap.exists()) {
-
-        return roomId;
-
-      }
+      throw new Error("This room is not active.");
 
     }
 
-    throw new Error(
-      "Could not generate a unique room ID."
-    );
-  }
+    if (!roomData.passwordHash) {
 
-
-  // =========================================================
-  // CREATE ROOM
-  // =========================================================
-
-  createRoomBtn.addEventListener(
-    "click",
-    async () => {
-
-      createRoomBtn.disabled = true;
-
-      createRoomBtn.textContent =
-        "Creating...";
-
-
-      try {
-
-        const roomId =
-          await generateUniqueRoomId();
-
-
-        const roomRef =
-          doc(db, "rooms", roomId);
-
-
-        // Room document
-
-        await setDoc(roomRef, {
-
-          roomId: roomId,
-
-          creatorUid:
-            currentUser.uid,
-
-          creatorName:
-            currentUser.name,
-
-          createdAt:
-            serverTimestamp(),
-
-          status: "active"
-
-        });
-
-
-        // Creator participant
-
-        const participantRef =
-          doc(
-            db,
-            "rooms",
-            roomId,
-            "participants",
-            currentUser.uid
-          );
-
-
-        await setDoc(
-          participantRef,
-          {
-
-            uid:
-              currentUser.uid,
-
-            name:
-              currentUser.name,
-
-            email:
-              currentUser.email,
-
-            phone:
-              currentUser.phone || "",
-
-            role:
-              "admin",
-
-            joinedAt:
-              serverTimestamp()
-
-          }
-        );
-
-
-        openRoom(roomId);
-
-      } catch (error) {
-
-        console.error(error);
-
-        showSetupError(
-          error.message
-        );
-
-      } finally {
-
-        createRoomBtn.disabled = false;
-
-        createRoomBtn.textContent =
-          "Create Room";
-
-      }
+      throw new Error("This older room has no password set. Create a new test room.");
 
     }
-  );
 
 
-  // =========================================================
-  // JOIN ROOM
-  // =========================================================
 
-  joinRoomBtn.addEventListener(
-    "click",
-    async () => {
+    const enteredHash = await passwordHash(password);
 
-      let roomId =
-        roomInput.value
-          .trim()
-          .toUpperCase();
+    if (enteredHash !== roomData.passwordHash) {
+
+      throw new Error("Incorrect room password.");
+
+    }
 
 
-      if (!/^CS\d{5}$/.test(roomId)) {
 
-        showSetupError(
-          "Room ID must look like CS12345."
-        );
+    await setDoc(doc(db, "rooms", roomId, "participants", currentUser.uid), {
+
+      uid: currentUser.uid,
+
+      name: currentUser.name,
+
+      email: currentUser.email || "",
+
+      phone: currentUser.phone || "",
+
+      role: currentUser.uid === roomData.creatorUid ? "admin" : "member",
+
+      joinedAt: serverTimestamp()
+
+    });
+
+
+
+    await setDoc(doc(collection(db, "rooms", roomId, "activity")), {
+
+      type: "USER_JOINED",
+
+      uid: currentUser.uid,
+
+      name: currentUser.name,
+
+      joinedAt: serverTimestamp()
+
+    });
+
+
+
+    joinPassword.value = "";
+
+    await openRoom(roomId);
+
+  } catch (error) {
+
+    console.error("Join room error:", error);
+
+    message(joinMessage, error.message, "error");
+
+  } finally {
+
+    joinRoomBtn.disabled = false;
+
+    joinRoomBtn.textContent = "Join Room";
+
+  }
+
+});
+
+
+
+/* Open room and show room details */
+
+async function openRoom(roomId) {
+
+  const snap = await getDoc(doc(db, "rooms", roomId));
+
+  if (!snap.exists()) throw new Error("Room no longer exists.");
+
+  const data = snap.data();
+
+
+
+  stopRoomListeners();
+
+  isLeavingRoom = false;
+
+  isDeletingRoom = false;
+
+
+
+  currentRoomId = roomId;
+
+  currentRoomName = data.roomName || "Unnamed Room";
+
+  currentRoomLanguage = data.language || "Not specified";
+
+  currentRoomCreatorName = data.creatorName || "Unknown";
+
+  roomCreatorUid = data.creatorUid || null;
+
+
+
+  $("roomIdDisplay").textContent = roomId;
+
+  $("roomNameDisplay").textContent = "Room Name: " + currentRoomName;
+
+  $("roomNameInfo").textContent = currentRoomName;
+
+  $("roomLanguageInfo").textContent = currentRoomLanguage;
+
+  $("roomCreatorInfo").textContent = currentRoomCreatorName;
+
+
+
+  const isAdmin = currentUser.uid === roomCreatorUid;
+
+  $("adminBadge").classList.toggle("hidden", !isAdmin);
+
+  deleteRoomBtn.classList.toggle("hidden", !isAdmin);
+
+
+
+
+
+
+
+  setup.classList.add("hidden");
+
+  roomView.classList.remove("hidden");
+
+  message(globalMessage, "");
+
+  history.replaceState({}, "", `?room=${roomId}`);
+
+
+
+  listenToParticipants(roomId);
+
+  listenToOwnParticipant(roomId);
+
+}
+
+
+
+/* Detach listeners before resetting/leaving to avoid stale callbacks */
+
+function stopRoomListeners() {
+
+  ownListenerGeneration++;
+
+  if (unsubscribeParticipants) {
+
+    unsubscribeParticipants();
+
+    unsubscribeParticipants = null;
+
+  }
+
+  if (unsubscribeOwnParticipant) {
+
+    unsubscribeOwnParticipant();
+
+    unsubscribeOwnParticipant = null;
+
+  }
+
+}
+
+
+
+/* Live participant cards */
+
+function listenToParticipants(roomId) {
+
+  const ref = collection(db, "rooms", roomId, "participants");
+
+  unsubscribeParticipants = onSnapshot(
+
+    query(ref, orderBy("joinedAt", "asc")),
+
+    snapshot => {
+
+      if (currentRoomId !== roomId || isLeavingRoom || isDeletingRoom) return;
+
+
+
+      participantsEl.innerHTML = "";
+
+      participantCount.textContent =
+
+        `${snapshot.size} ${snapshot.size === 1 ? "user" : "users"}`;
+
+
+
+      if (snapshot.empty) {
+
+        participantsEl.innerHTML = '<div class="empty">No participants.</div>';
 
         return;
+
       }
 
 
-      joinRoomBtn.disabled = true;
 
-      joinRoomBtn.textContent =
-        "Joining...";
+      snapshot.forEach(participantDoc => {
 
+        const p = participantDoc.data();
 
-      try {
+        const isAdmin = p.uid === roomCreatorUid;
 
-        const roomRef =
-          doc(db, "rooms", roomId);
+        const isSelf = p.uid === currentUser.uid;
 
+        const card = document.createElement("div");
 
-        const roomSnap =
-          await getDoc(roomRef);
+        card.className = "participant";
 
 
-        if (!roomSnap.exists()) {
 
-          throw new Error(
-            "Room does not exist."
-          );
+        card.innerHTML = `
+
+          <div class="avatar">${escapeHtml((p.name || "?").charAt(0).toUpperCase())}</div>
+
+          <div class="participant-info">
+
+            <div class="participant-name">
+
+              ${escapeHtml(p.name || "Unknown")}
+
+              ${isSelf ? '<span style="color:#5C6690;font-size:10px">(You)</span>' : ""}
+
+            </div>
+
+            <div class="participant-role">${isAdmin ? "Room Creator" : "Participant"}</div>
+
+          </div>
+
+          <div class="participant-actions">
+
+            ${isAdmin ? '<span class="admin-label">ADMIN</span>' : ""}
+
+          </div>`;
+
+
+
+        /* Only creator/admin gets controls for other participants */
+
+        if (currentUser.uid === roomCreatorUid && !isAdmin) {
+
+          const actions = card.querySelector(".participant-actions");
+
+
+
+          const detailsBtn = document.createElement("button");
+
+          detailsBtn.className = "details";
+
+          detailsBtn.textContent = "Details";
+
+          detailsBtn.addEventListener("click", () => {
+
+            const existing = card.querySelector(".details-box");
+
+            if (existing) return existing.remove();
+
+            const box = document.createElement("div");
+
+            box.className = "details-box";
+
+            box.innerHTML = `Email: ${escapeHtml(p.email || "N/A")}<br>Mobile: ${escapeHtml(p.phone || "N/A")}`;
+
+            card.querySelector(".participant-info").appendChild(box);
+
+          });
+
+          actions.prepend(detailsBtn);
+
+
+
+          const removeBtn = document.createElement("button");
+
+          removeBtn.className = "danger";
+
+          removeBtn.textContent = "Remove";
+
+          removeBtn.addEventListener("click", () => removeParticipant(p.uid, p.name));
+
+          actions.appendChild(removeBtn);
 
         }
 
+        participantsEl.appendChild(card);
 
-        const participantRef =
-          doc(
-            db,
-            "rooms",
-            roomId,
-            "participants",
-            currentUser.uid
-          );
+      });
 
+    },
 
-        await setDoc(
-          participantRef,
-          {
+    error => {
 
-            uid:
-              currentUser.uid,
+      if (currentRoomId === roomId && !isLeavingRoom && !isDeletingRoom) {
 
-            name:
-              currentUser.name,
-
-            email:
-              currentUser.email,
-
-            phone:
-              currentUser.phone || "",
-
-            role:
-              "member",
-
-            joinedAt:
-              serverTimestamp()
-
-          }
-        );
-
-
-        openRoom(roomId);
-
-      } catch (error) {
-
-        console.error(error);
-
-        showSetupError(
-          error.message
-        );
-
-      } finally {
-
-        joinRoomBtn.disabled = false;
-
-        joinRoomBtn.textContent =
-          "Join Room";
+        globalError("Could not load participants: " + error.message);
 
       }
 
     }
+
   );
 
-
-  // =========================================================
-  // OPEN ROOM
-  // =========================================================
-
-  function openRoom(roomId) {
-
-    currentRoomId =
-      roomId;
+}
 
 
-    roomIdDisplay.textContent =
-      roomId;
+
+/* Detect if the admin removes this user */
+
+function listenToOwnParticipant(roomId) {
+
+  const generation = ownListenerGeneration;
+
+  const ownRef = doc(db, "rooms", roomId, "participants", currentUser.uid);
 
 
-    const inviteUrl =
-      `${window.location.origin}${window.location.pathname}?room=${roomId}`;
+
+  unsubscribeOwnParticipant = onSnapshot(ownRef, snap => {
+
+    if (generation !== ownListenerGeneration) return;
+
+    if (currentRoomId !== roomId || isLeavingRoom || isDeletingRoom) return;
 
 
-    inviteUrlEl.textContent =
-      inviteUrl;
+
+    if (!snap.exists()) {
+
+      stopRoomListeners();
+
+      globalError("You have been removed from this room.");
+
+      setTimeout(() => {
+
+        if (!currentRoomId) return;
+
+        resetRoomUI();
+
+      }, 900);
+
+    }
+
+  }, error => {
+
+    if (currentRoomId === roomId && !isLeavingRoom && !isDeletingRoom) {
+
+      console.error("Own participant listener:", error);
+
+    }
+
+  });
+
+}
 
 
-    setup.classList.add(
-      "hidden"
-    );
+
+/* Remove participant */
+
+async function removeParticipant(uid, name) {
+
+  if (!currentRoomId || currentUser.uid !== roomCreatorUid) return;
+
+  if (!confirm(`Remove ${name || "this participant"} from the room?`)) return;
 
 
-    roomView.classList.remove(
-      "hidden"
-    );
 
+  try {
 
-    listenToParticipants(
-      roomId
-    );
+    const roomId = currentRoomId;
 
+    await deleteDoc(doc(db, "rooms", roomId, "participants", uid));
 
-    listenToOwnParticipant(
-      roomId
-    );
+    await setDoc(doc(collection(db, "rooms", roomId, "activity")), {
 
+      type: "USER_REMOVED",
 
-    history.replaceState(
-      {},
-      "",
-      `?room=${roomId}`
-    );
+      uid,
+
+      name: name || "",
+
+      removedByUid: currentUser.uid,
+
+      removedByName: currentUser.name,
+
+      createdAt: serverTimestamp()
+
+    });
+
+    globalSuccess("Participant removed.");
+
+  } catch (error) {
+
+    globalError("Could not remove participant: " + error.message);
 
   }
 
+}
 
-  // =========================================================
-  // LIVE PARTICIPANTS
-  // =========================================================
 
-  function listenToParticipants(roomId) {
 
-    if (unsubscribeParticipants) {
+async function copyInviteLink() {
 
-      unsubscribeParticipants();
+    const inviteLink = window.location.href;
 
-    }
-
-
-    const participantsRef =
-      collection(
-        db,
-        "rooms",
-        roomId,
-        "participants"
-      );
-
-
-    const participantsQuery =
-      query(
-        participantsRef,
-        orderBy("joinedAt", "asc")
-      );
-
-
-    unsubscribeParticipants =
-      onSnapshot(
-        participantsQuery,
-        (snapshot) => {
-
-          participantsEl.innerHTML = "";
-
-          participantCount.textContent =
-            `${snapshot.size} ${
-              snapshot.size === 1
-                ? "user"
-                : "users"
-            }`;
-
-
-          if (snapshot.empty) {
-
-            participantsEl.innerHTML = `
-              <div class="empty">
-                No participants.
-              </div>
-            `;
-
-            return;
-          }
-
-
-          snapshot.forEach(
-            (participantDoc) => {
-
-              const participant =
-                participantDoc.data();
-
-
-              const isAdmin =
-                participant.role === "admin";
-
-
-              const isCurrentUser =
-                participant.uid ===
-                currentUser.uid;
-
-
-              const card =
-                document.createElement("div");
-
-
-              card.className =
-                "participant";
-
-
-              const initial =
-                participant.name
-                  ? participant.name
-                      .charAt(0)
-                      .toUpperCase()
-                  : "?";
-
-
-              card.innerHTML = `
-
-                <div class="avatar">
-                  ${escapeHtml(initial)}
-                </div>
-
-                <div class="participant-info">
-
-                  <div class="participant-name">
-
-                    ${escapeHtml(
-                      participant.name
-                    )}
-
-                    ${
-                      isCurrentUser
-                        ? `
-                          <span
-                            style="
-                              color:#5C6690;
-                              font-size:10px;
-                            "
-                          >
-                            (You)
-                          </span>
-                        `
-                        : ""
-                    }
-
-                  </div>
-
-                  <div class="participant-email">
-
-                    ${
-                      isAdmin
-                        ? "Room Creator"
-                        : "Participant"
-                    }
-
-                  </div>
-
-                </div>
-
-                <div class="participant-actions">
-
-                  ${
-                    isAdmin
-                      ? `
-                        <span
-                          class="admin-label"
-                        >
-                          ADMIN
-                        </span>
-                      `
-                      : ""
-                  }
-
-                </div>
-              `;
-
-
-              // ------------------------------------------------
-              // ADMIN CONTROLS
-              // ------------------------------------------------
-
-              if (
-                currentUser.uid ===
-                getRoomCreatorUid()
-              ) {
-
-                if (!isAdmin) {
-
-                  const actions =
-                    card.querySelector(
-                      ".participant-actions"
-                    );
-
-
-                  const detailsBtn =
-                    document.createElement(
-                      "button"
-                    );
-
-
-                  detailsBtn.className =
-                    "details";
-
-
-                  detailsBtn.textContent =
-                    "Details";
-
-
-                  detailsBtn.addEventListener(
-                    "click",
-                    () => {
-
-                      const old =
-                        card.querySelector(
-                          ".details-box"
-                        );
-
-
-                      if (old) {
-
-                        old.remove();
-
-                        return;
-
-                      }
-
-
-                      const box =
-                        document.createElement(
-                          "div"
-                        );
-
-
-                      box.className =
-                        "details-box";
-
-
-                      box.innerHTML = `
-                        Email:
-                        ${escapeHtml(
-                          participant.email || "N/A"
-                        )}
-                        <br>
-                        Mobile:
-                        ${escapeHtml(
-                          participant.phone || "N/A"
-                        )}
-                      `;
-
-
-                      card
-                        .querySelector(
-                          ".participant-info"
-                        )
-                        .appendChild(box);
-
-                    }
-                  );
-
-
-                  actions.prepend(
-                    detailsBtn
-                  );
-
-
-                  const removeBtn =
-                    document.createElement(
-                      "button"
-                    );
-
-
-                  removeBtn.className =
-                    "danger";
-
-
-                  removeBtn.textContent =
-                    "Remove";
-
-
-                  removeBtn.addEventListener(
-                    "click",
-                    () => removeParticipant(
-                      participant.uid
-                    )
-                  );
-
-
-                  actions.appendChild(
-                    removeBtn
-                  );
-
-                }
-
-              }
-
-
-              participantsEl.appendChild(
-                card
-              );
-
-            }
-          );
-
-        },
-
-        (error) => {
-
-          console.error(error);
-
-          showGlobalError(
-            "Could not load participants: " +
-            error.message
-          );
-
-        }
-      );
-
-  }
-
-
-  // =========================================================
-  // GET CREATOR UID
-  // =========================================================
-
-  let roomCreatorUid = null;
-
-
-  async function loadRoomCreator(roomId) {
-
-    const roomSnap =
-      await getDoc(
-        doc(db, "rooms", roomId)
-      );
-
-
-    if (!roomSnap.exists()) {
-
-      throw new Error(
-        "Room no longer exists."
-      );
-
-    }
-
-
-    roomCreatorUid =
-      roomSnap.data().creatorUid;
-
-
-    if (
-      roomCreatorUid ===
-      currentUser.uid
-    ) {
-
-      adminBadge.classList.remove(
-        "hidden"
-      );
-
-    } else {
-
-      adminBadge.classList.add(
-        "hidden"
-      );
-
-    }
-
-  }
-
-
-  function getRoomCreatorUid() {
-
-    return roomCreatorUid;
-
-  }
-
-
-  // =========================================================
-  // CHECK CURRENT USER
-  // =========================================================
-
-  function listenToOwnParticipant(roomId) {
-
-    if (unsubscribeOwnParticipant) {
-
-      unsubscribeOwnParticipant();
-
-    }
-
-
-    const ownParticipantRef =
-      doc(
-        db,
-        "rooms",
-        roomId,
-        "participants",
-        currentUser.uid
-      );
-
-
-    unsubscribeOwnParticipant =
-      onSnapshot(
-        ownParticipantRef,
-        (snapshot) => {
-
-          if (!snapshot.exists()) {
-
-            showGlobalError(
-              "You have been removed from this room."
-            );
-
-
-            setTimeout(
-              () => {
-
-                leaveRoomUI();
-
-              },
-              1500
-            );
-
-          }
-
-        }
-      );
-
-  }
-
-
-  // =========================================================
-  // REMOVE PARTICIPANT
-  // =========================================================
-
-  async function removeParticipant(uid) {
-
-    if (
-      !currentRoomId ||
-      currentUser.uid !==
-      roomCreatorUid
-    ) {
-
-      return;
-
-    }
-
-
-    const confirmed =
-      confirm(
-        "Remove this participant from the room?"
-      );
-
-
-    if (!confirmed) {
-
-      return;
-
-    }
 
 
     try {
 
-      await deleteDoc(
-        doc(
-          db,
-          "rooms",
-          currentRoomId,
-          "participants",
-          uid
-        )
-      );
+        await navigator.clipboard.writeText(inviteLink);
 
-
-      showGlobalSuccess(
-        "Participant removed."
-      );
+        alert("Invite link copied successfully!");
 
     } catch (error) {
 
-      console.error(error);
+        const textArea = document.createElement("textarea");
 
-      showGlobalError(
-        error.message
-      );
+        textArea.value = inviteLink;
 
-    }
+        textArea.style.position = "fixed";
 
-  }
+        textArea.style.left = "-9999px";
 
+        document.body.appendChild(textArea);
 
-  // =========================================================
-  // COPY INVITE
-  // =========================================================
+        textArea.select();
 
-  copyInviteBtn.addEventListener(
-    "click",
-    async () => {
 
-      const url =
-        inviteUrlEl.textContent;
 
+        const copied = document.execCommand("copy");
 
-      try {
+        textArea.remove();
 
-        await navigator.clipboard.writeText(
-          url
-        );
 
 
-        copyInviteBtn.textContent =
-          "Copied!";
+        if (copied) {
 
+            alert("Invite link copied successfully!");
 
-        setTimeout(
-          () => {
+        } else {
 
-            copyInviteBtn.textContent =
-              "Copy Invite";
-
-          },
-          1500
-        );
-
-
-      } catch {
-
-        showGlobalError(
-          "Could not copy invite link."
-        );
-
-      }
-
-    }
-  );
-
-
-  // =========================================================
-  // LEAVE ROOM
-  // =========================================================
-
-  leaveRoomBtn.addEventListener(
-    "click",
-    async () => {
-
-      if (!currentRoomId) {
-
-        return;
-
-      }
-
-
-      const confirmed =
-        confirm(
-          "Leave this room?"
-        );
-
-
-      if (!confirmed) {
-
-        return;
-
-      }
-
-
-      try {
-
-        await deleteDoc(
-          doc(
-            db,
-            "rooms",
-            currentRoomId,
-            "participants",
-            currentUser.uid
-          )
-        );
-
-
-        leaveRoomUI();
-
-      } catch (error) {
-
-        showGlobalError(
-          error.message
-        );
-
-      }
-
-    }
-  );
-
-
-  function leaveRoomUI() {
-
-    if (unsubscribeParticipants) {
-
-      unsubscribeParticipants();
-
-    }
-
-
-    if (unsubscribeOwnParticipant) {
-
-      unsubscribeOwnParticipant();
-
-    }
-
-
-    currentRoomId =
-      null;
-
-
-    roomView.classList.add(
-      "hidden"
-    );
-
-
-    setup.classList.remove(
-      "hidden"
-    );
-
-
-    roomInput.value = "";
-
-
-    history.replaceState(
-      {},
-      "",
-      window.location.pathname
-    );
-
-  }
-
-
-  // =========================================================
-  // BACK TO USERS
-  // =========================================================
-
-  backUsersBtn.addEventListener(
-    "click",
-    () => {
-
-      window.location.href =
-        "users.html";
-
-    }
-  );
-
-
-  // =========================================================
-  // INVITE LINK ON PAGE LOAD
-  // =========================================================
-
-  const params =
-    new URLSearchParams(
-      window.location.search
-    );
-
-
-  const invitedRoom =
-    params.get("room");
-
-
-  if (invitedRoom) {
-
-    const normalizedRoom =
-      invitedRoom.toUpperCase();
-
-
-    if (
-      /^CS\d{5}$/.test(
-        normalizedRoom
-      )
-    ) {
-
-      roomInput.value =
-        normalizedRoom;
-
-      joinRoomAutomatically(
-        normalizedRoom
-      );
-
-    }
-
-  }
-
-
-  async function joinRoomAutomatically(roomId) {
-
-    try {
-
-      await loadRoomCreator(
-        roomId
-      );
-
-
-      const roomSnap =
-        await getDoc(
-          doc(db, "rooms", roomId)
-        );
-
-
-      if (!roomSnap.exists()) {
-
-        throw new Error(
-          "This room does not exist."
-        );
-
-      }
-
-
-      const participantRef =
-        doc(
-          db,
-          "rooms",
-          roomId,
-          "participants",
-          currentUser.uid
-        );
-
-
-      await setDoc(
-        participantRef,
-        {
-
-          uid:
-            currentUser.uid,
-
-          name:
-            currentUser.name,
-
-          email:
-            currentUser.email,
-
-          phone:
-            currentUser.phone || "",
-
-          role:
-            currentUser.uid ===
-            roomCreatorUid
-              ? "admin"
-              : "member",
-
-          joinedAt:
-            serverTimestamp()
+            alert("Could not copy invite link. Please try again.");
 
         }
-      );
+
+    }
+
+}
 
 
-      openRoom(roomId);
 
-    } catch (error) {
+$("copyInvite").addEventListener("click", copyInviteLink);
 
-      showSetupError(
-        error.message
-      );
+
+
+
+
+
+
+/* Leave: admin and members leave without deleting the room */
+
+leaveRoomBtn.addEventListener("click", async () => {
+
+  if (!currentRoomId || isLeavingRoom || isDeletingRoom) return;
+
+  if (!confirm(`Leave "${currentRoomName}"? The room will remain available.`)) return;
+
+
+
+  const roomId = currentRoomId;
+
+  isLeavingRoom = true;
+
+  stopRoomListeners();
+
+  leaveRoomBtn.disabled = true;
+
+  leaveRoomBtn.textContent = "Leaving...";
+
+
+
+  try {
+
+    await deleteDoc(doc(db, "rooms", roomId, "participants", currentUser.uid));
+
+    await setDoc(doc(collection(db, "rooms", roomId, "activity")), {
+
+      type: "USER_LEFT",
+
+      uid: currentUser.uid,
+
+      name: currentUser.name,
+
+      createdAt: serverTimestamp()
+
+    });
+
+
+
+    resetRoomUI();
+
+    globalSuccess("You left the room. The room has not been deleted.");
+
+  } catch (error) {
+
+    isLeavingRoom = false;
+
+    leaveRoomBtn.disabled = false;
+
+    leaveRoomBtn.textContent = "Leave";
+
+    globalError("Could not leave room: " + error.message);
+
+
+
+    /* Restore listeners because leaving failed */
+
+    if (currentRoomId) {
+
+      listenToParticipants(currentRoomId);
+
+      listenToOwnParticipant(currentRoomId);
 
     }
 
   }
 
-
-  // =========================================================
-  // SETUP INITIAL ROOM
-  // =========================================================
-
-  const initialRoom =
-    params.get("room");
+});
 
 
-  if (initialRoom) {
 
-    loadRoomCreator(
-      initialRoom.toUpperCase()
-    ).catch(
-      console.error
-    );
+/* Admin-only permanent delete of the currently open room */
+
+deleteRoomBtn.addEventListener("click", async () => {
+
+  if (!currentRoomId || currentUser.uid !== roomCreatorUid ||
+
+      isLeavingRoom || isDeletingRoom) return;
+
+
+
+  const roomId = currentRoomId;
+
+  const roomName = currentRoomName;
+
+
+
+  if (!confirm(`Permanently delete "${roomName}" (${roomId})?\n\nOnly this room and its participants/activity will be deleted.`)) return;
+
+
+
+  isDeletingRoom = true;
+
+  stopRoomListeners();
+
+  deleteRoomBtn.disabled = true;
+
+  deleteRoomBtn.textContent = "Deleting...";
+
+
+
+  try {
+
+    /* Delete participant and activity documents in safe-size batches */
+
+    for (const sub of ["participants", "activity"]) {
+
+      const snap = await getDocs(collection(db, "rooms", roomId, sub));
+
+      for (let i = 0; i < snap.docs.length; i += 450) {
+
+        const batch = writeBatch(db);
+
+        snap.docs.slice(i, i + 450).forEach(d => batch.delete(d.ref));
+
+        await batch.commit();
+
+      }
+
+    }
+
+
+
+    await deleteDoc(doc(db, "rooms", roomId));
+
+    resetRoomUI();
+
+    globalSuccess(`Room ${roomId} deleted.`);
+
+  } catch (error) {
+
+    isDeletingRoom = false;
+
+    deleteRoomBtn.disabled = false;
+
+    deleteRoomBtn.textContent = "Delete Room";
+
+    globalError("Could not delete room: " + error.message);
+
+
+
+    if (currentRoomId) {
+
+      listenToParticipants(currentRoomId);
+
+      listenToOwnParticipant(currentRoomId);
+
+    }
 
   }
 
-
-  // =========================================================
-  // MESSAGE HELPERS
-  // =========================================================
-
-  function showSetupError(text) {
-
-    setupMessage.textContent =
-      text;
-
-    setupMessage.className =
-      "message error";
-
-  }
+});
 
 
-  function showGlobalError(text) {
 
-    globalMessage.textContent =
-      text;
+/* Reset room state and controls */
 
-    globalMessage.className =
-      "message error";
+function resetRoomUI() {
 
-  }
+  stopRoomListeners();
 
+  currentRoomId = null;
 
-  function showGlobalSuccess(text) {
+  currentRoomName = null;
 
-    globalMessage.textContent =
-      text;
+  currentRoomLanguage = null;
 
-    globalMessage.className =
-      "message success";
+  currentRoomCreatorName = null;
 
+  roomCreatorUid = null;
 
-    setTimeout(
-      () => {
+  isLeavingRoom = false;
 
-        globalMessage.textContent =
-          "";
-
-      },
-      2500
-    );
-
-  }
+  isDeletingRoom = false;
 
 
-  // =========================================================
-  // HTML ESCAPE
-  // =========================================================
 
-  function escapeHtml(value) {
+  $("roomIdDisplay").textContent = "";
 
-    return String(value)
-      .replaceAll("&", "&amp;")
-      .replaceAll("<", "&lt;")
-      .replaceAll(">", "&gt;")
-      .replaceAll('"', "&quot;")
-      .replaceAll("'", "&#039;");
+  $("roomNameDisplay").textContent = "Room Name: -";
 
-  }
+  $("roomNameInfo").textContent = "-";
+
+  $("roomLanguageInfo").textContent = "-";
+
+  $("roomCreatorInfo").textContent = "-";
+
+
+
+  $("adminBadge").classList.add("hidden");
+
+
+
+  deleteRoomBtn.classList.add("hidden");
+
+  deleteRoomBtn.disabled = false;
+
+  deleteRoomBtn.textContent = "Delete Room";
+
+
+
+  leaveRoomBtn.disabled = false;
+
+  leaveRoomBtn.textContent = "Leave";
+
+
+
+  participantsEl.innerHTML = '<div class="empty">Waiting for participants...</div>';
+
+  participantCount.textContent = "0 users";
+
+
+
+  roomInput.value = "";
+
+  joinPassword.value = "";
+
+  roomNameInput.value = "";
+
+  createPassword.value = "";
+
+  languageSelect.value = "";
+
+
+
+  message(setupMessage, "");
+
+  message(joinMessage, "");
+
+  message(globalMessage, "");
+
+
+
+  roomView.classList.add("hidden");
+
+  setup.classList.remove("hidden");
+
+  history.replaceState({}, "", location.pathname);
+
+}
+
+
+
+/* Back to test users */
+
+$("backUsers").addEventListener("click", () => {
+
+  location.href = "users.html";
+
+});
+
+
+
+/* Room ID input formatting */
+
+roomInput.addEventListener("input", () => {
+
+  roomInput.value = roomInput.value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 7);
+
+});
+
+
+
+/* Invite links fill the room ID but still require the password */
+
+const params = new URLSearchParams(location.search);
+
+const invitedRoom = (params.get("room") || "").trim().toUpperCase();
+
+if (/^CS\d{5}$/.test(invitedRoom)) {
+
+  roomInput.value = invitedRoom;
+
+  message(joinMessage, "Enter the room password to join.", "");
+
+}
 
 </script>
 
 </body>
+
 </html>
