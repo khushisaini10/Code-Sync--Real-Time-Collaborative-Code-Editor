@@ -38,6 +38,7 @@
       <span id="room-lang" class="chip-lang"></span>
       <div class="spacer"></div>
       <div id="presence"></div>
+      <button id="run" type="button" disabled title="Run the code (Ctrl+Enter)">&#9654; Run</button>
       <button id="share" class="ghost" type="button">Copy link</button>
       <button id="back" class="ghost" type="button" onclick="location.href='dashboard.html'">Dashboard</button>
     </header>
@@ -49,6 +50,21 @@
         <textarea id="ta" spellcheck="false" wrap="off" autocomplete="off" autocapitalize="off" readonly></textarea>
       </div>
     </div>
+
+    <section id="output" class="collapsed">
+      <div id="out-bar">
+        <strong>Output</strong>
+        <span id="out-status">not run yet</span>
+        <div class="spacer"></div>
+        <button id="out-toggle" class="ghost" type="button">Show</button>
+      </div>
+      <div id="out-body">
+        <pre id="out-text"></pre>
+        <label id="stdin-row">Input for the program (what Scanner / input() reads)
+          <textarea id="stdin" rows="2" spellcheck="false" placeholder="Leave empty if your program asks for nothing"></textarea>
+        </label>
+      </div>
+    </section>
 
     <footer>
       <span id="pos">Ln 1, Col 1</span>

@@ -37,6 +37,7 @@ import org.springframework.web.socket.handler.TextWebSocketHandler;
  *                     {type:"op", clientId, version, from, to, text}   (sent to everyone, author included = ack)
  *                     {type:"presence", users:[{id,name,color}]}
  *                     {type:"error", message}
+ *                     {type:"run-start", by}   /   {type:"run", by, status, output, exitCode, millis, truncated}
  *
  * <p>A client may only join a room if its login token is valid AND it is a member of that room.
  * The display name always comes from the user's profile, never from the browser.
@@ -190,6 +191,11 @@ public class EditorWebSocketHandler extends TextWebSocketHandler {
             }
         }
         broadcast(room, Map.of("type", "presence", "users", present));
+    }
+
+    /** Lets other parts of the server (e.g. the Run button) send a message to everyone in a room. */
+    public void broadcastToRoom(String room, Object payload) {
+        broadcast(room, payload);
     }
 
     private void broadcast(String room, Object payload) {

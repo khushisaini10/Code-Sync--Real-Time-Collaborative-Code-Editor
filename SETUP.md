@@ -50,6 +50,14 @@ Click **Publish**. The server is not affected, because the Admin SDK bypasses th
 
 Links use whatever address the page is opened from, so nothing needs changing in code.
 
+## Running code (Phase 4)
+Press **Run** (or Ctrl+Enter) in a room. The server takes the room's current code, compiles it (Java) and runs it, then shows the result to everyone in the room.
+- Java: the public class's `main` runs. Without a public class, the class declared before `main` runs.
+- Needs a **JDK 21** (not just a JRE) on the machine running the server. Python needs `python` (Windows) or `python3` on PATH, or set `CODESYNC_PYTHON`.
+- The Input box feeds `Scanner` / `input()`.
+- Limits: 15 s to compile, 5 s to run, 64 KB output, 2 programs at once, one run per user every 2 s.
+- **Safety:** these are process limits, not a full sandbox. While you run it on your own PC, only invite people you trust. Before opening it to the public, run it inside a locked-down container (Phase 5: no network, memory limit, non-root user).
+
 ## Deploying later
 Set these environment variables on the host:
 - `FIREBASE_CREDENTIALS_JSON` = the full contents of the service-account key (never commit it)

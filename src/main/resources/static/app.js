@@ -6,6 +6,7 @@ import { auth, api, requireUser, roomLink } from './session.js';
   const ta = $('ta'), hl = $('hl'), gutter = $('gutter');
   const posEl = $('pos'), countEl = $('count'), connEl = $('conn');
   const presenceEl = $('presence');
+  const runBtn = $('run'), outEl = $('output'), outText = $('out-text'), outStatus = $('out-status'), outToggle = $('out-toggle');
   const splash = $('splash'), app = $('app');
 
   // =====================================================================
@@ -152,6 +153,7 @@ import { auth, api, requireUser, roomLink } from './session.js';
       ready = false;
       outstanding = false;
       ta.readOnly = true;
+      runBtn.disabled = true;
       if (stopped) return;
       setConn('offline', 'offline - retrying');
       setTimeout(connect, 2000);
@@ -185,6 +187,7 @@ import { auth, api, requireUser, roomLink } from './session.js';
         ready = true;
         ta.readOnly = false;
         TOKEN = buildToken(msg.language);
+        runBtn.disabled = false;
         ta.value = msg.text;
         render();
         setConn('live', 'live - room ' + msg.room);
@@ -194,6 +197,12 @@ import { auth, api, requireUser, roomLink } from './session.js';
         break;
       case 'presence':
         renderPresence(msg.users);
+        break;
+      case 'run-start':
+        setRunning(true, msg.by);
+        break;
+      case 'run':
+        showRun(msg);
         break;
       case 'error':
         fatal(msg.message);
@@ -259,6 +268,82 @@ import { auth, api, requireUser, roomLink } from './session.js';
     const done = () => { $('share').textContent = 'Copied!'; setTimeout(() => { $('share').textContent = 'Copy link'; }, 1500); };
     if (navigator.clipboard) navigator.clipboard.writeText(link).then(done, () => window.prompt('Copy this link:', link));
     else window.prompt('Copy this link:', link);
+  });
+
+  // =====================================================================
+  //  Run button + output panel
+  // =====================================================================
+  const STATUS_TEXT = {
+    OK: 'Finished',
+    COMPILE_ERROR: 'Compile error',
+    RUNTIME_ERROR: 'Crashed',
+    TIMEOUT: 'Timed out',
+    OUTPUT_LIMIT: 'Too much output',
+    BUSY: 'Server busy',
+    ERROR: 'Could not run',
+  };
+  let running = false;
+
+  function openOutput(open) {
+    outEl.classList.toggle('collapsed', !open);
+    outToggle.textContent = open ? 'Hide' : 'Show';
+  }
+
+  function setRunning(on, by) {
+    running = on;
+    runBtn.disabled = on || !ready;
+    runBtn.textContent = on ? 'Running...' : '\u25B6 Run';
+    if (on) {
+      outStatus.textContent = (by ? by + ' is running the code...' : 'running...');
+      outStatus.className = '';
+      outText.textContent = '';
+      openOutput(true);
+    }
+  }
+
+  function showRun(msg) {
+    setRunning(false);
+    const label = STATUS_TEXT[msg.status] || msg.status;
+    const bad = msg.status !== 'OK';
+    const code = msg.status === 'RUNTIME_ERROR' ? ' (exit code ' + msg.exitCode + ')' : '';
+    outStatus.textContent = label + code + ' - ' + msg.by + ' - ' + msg.millis + ' ms';
+    outStatus.className = bad ? 'bad' : 'good';
+    outText.className = bad ? 'err' : '';
+    outText.textContent = msg.output === '' ? '(the program printed nothing)' : msg.output; // textContent: output is untrusted
+    openOutput(true);
+  }
+
+  /** Wait (briefly) until my last keystrokes have reached the server, so it runs what I see. */
+  async function waitUntilSynced() {
+    for (let i = 0; i < 25 && (outstanding || ta.value !== serverText); i++) {
+      flush();
+      await new Promise((resolve) => setTimeout(resolve, 80));
+    }
+  }
+
+  async function runCode() {
+    if (!ready || running) return;
+    runBtn.disabled = true;
+    try {
+      await waitUntilSynced();
+      await api('/api/rooms/' + encodeURIComponent(roomCode) + '/run', {
+        method: 'POST',
+        body: JSON.stringify({ stdin: $('stdin').value }),
+      }); // the result also arrives over the socket, for everyone in the room
+    } catch (error) {
+      setRunning(false);
+      outStatus.textContent = error.message;
+      outStatus.className = 'bad';
+      openOutput(true);
+    } finally {
+      if (!running) runBtn.disabled = !ready;
+    }
+  }
+
+  runBtn.addEventListener('click', runCode);
+  outToggle.addEventListener('click', () => openOutput(outEl.classList.contains('collapsed')));
+  document.addEventListener('keydown', (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); runCode(); }
   });
 
   // =====================================================================
